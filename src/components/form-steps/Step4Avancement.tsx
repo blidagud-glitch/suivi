@@ -67,9 +67,9 @@ export default function Step4Avancement({
     </div>
   );
 
-  const renderDifficultes = (title: string) => (
+  const renderDifficultes = (title1: string, title2: string) => (
     <div className="space-y-4">
-      <Label>{title}</Label>
+      <Label>{title1}</Label>
       <div className="space-y-3 bg-gray-50 p-4 rounded-lg border">
         {[
           { id: 'admin', label: 'Procédures administratives et réglementaires' },
@@ -104,11 +104,12 @@ export default function Step4Avancement({
       
       {data.difficultes.length > 0 && (
         <div className="space-y-2 bg-gray-50 p-4 rounded-lg border">
-          <Label>Parmi les difficultés mentionnées, quelle est actuellement la principale contrainte du projet ?</Label>
+          <Label>{title2}</Label>
           <select 
             className="w-full h-10 px-3 border rounded-md text-sm"
             value={data.difficultePrincipale}
             onChange={e => update({ difficultePrincipale: e.target.value })}
+            required
           >
             <option value="">Sélectionner la contrainte principale</option>
             {data.difficultes.map(d => (
@@ -163,10 +164,11 @@ export default function Step4Avancement({
               <Label>6.2. Si Abandonné, Annulé, en Arrêt</Label>
               {renderInvestissementEmplois('6.2')}
             </div>
-            {renderDifficultes('6.3. Difficultés ou obstacles rencontrées')}
+            {renderDifficultes('6.3.1. Difficultés ou obstacles rencontrées (plusieurs réponses possibles)', '6.3.2. Parmi les difficultés mentionnées, quelle est actuellement la principale contrainte du projet ? (Réinsérer la liste précédente, un choix possible) :')}
             
             <div className="space-y-4 bg-gray-50 p-4 rounded-lg border">
               <Label>6.4. Perspectives de relance/de mise en exécution du projet</Label>
+              <Label className="block mt-2 font-normal text-sm">Le projet présente-t-il des perspectives de relance/Mise en exécution ?</Label>
               <div className="space-y-2">
                 {[
                   { id: 'oui', label: 'Oui (Aller à la question 6.5)' },
@@ -197,10 +199,11 @@ export default function Step4Avancement({
 
         {isGroup2 && (
           <div className="space-y-6">
-            {renderDifficultes('6.3. Difficultés ou obstacles rencontrées')}
+            {renderDifficultes('6.3.1. Difficultés ou obstacles rencontrées (plusieurs réponses possibles)', '6.3.2. Parmi les difficultés mentionnées, quelle est actuellement la principale contrainte du projet ? (Réinsérer la liste précédente, un choix possible) :')}
             
             <div className="space-y-4 bg-gray-50 p-4 rounded-lg border">
               <Label>6.4. Perspectives de relance/de mise en exécution du projet</Label>
+              <Label className="block mt-2 font-normal text-sm">Le projet présente-t-il des perspectives de relance/Mise en exécution ?</Label>
               <div className="space-y-2">
                 {[
                   { id: 'oui', label: 'Oui (Aller à la question 6.5)' },
@@ -291,7 +294,7 @@ export default function Step4Avancement({
               <Input type="date" value={data.datePleineExploitation} onChange={e => update({ datePleineExploitation: e.target.value })} className="w-auto h-8" />
             </div>
 
-            {renderDifficultes('6.10. Difficultés ou obstacles rencontrées')}
+            {renderDifficultes('6.10.1. Difficultés ou obstacles rencontrées (plusieurs réponses possibles)', '6.10.2. Parmi les difficultés mentionnées, quelle est actuellement la principale contrainte du projet ? (Réinsérer la liste précédente, un choix possible) :')}
           </div>
         )}
 

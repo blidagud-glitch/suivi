@@ -3,7 +3,7 @@ import { getSubmissions, saveSubmission, deleteSubmission } from '../lib/store';
 import { FormState, initialFormState } from '../types';
 import { Button } from './ui/Button';
 import { Plus, Download, Search, QrCode, Eye, Pencil, Trash2, Users, Settings, Upload } from 'lucide-react';
-import * as XLSX from 'xlsx';
+import { generateExcel } from '../lib/exportExcel';
 import SubmissionDetails from './SubmissionDetails';
 import PromoterForm from './PromoterForm';
 import { cn } from '../lib/utils';
@@ -44,29 +44,7 @@ export default function Dashboard({ onLogout, role }: { onLogout: () => void, ro
   };
 
   const exportToExcel = () => {
-    // Map submissions to the required format for AAPI tracking table
-    const data = submissions.map(sub => ({
-      "Numéro d'enregistrement": sub.attestationNumero,
-      "Contact établi": sub.contactEtabli === 'telephone' ? 'Téléphone' : sub.contactEtabli === 'gud' ? 'GUD' : 'Non',
-      "Motif de non-contact": sub.raisonNonContact,
-      "Présentation GUD": sub.presentationGUD,
-      "Crédit bancaire": sub.necessiteCredit,
-      "État du crédit": sub.etatCredit,
-      "Foncier nécessaire": sub.necessiteFoncier,
-      "Type de foncier": sub.typeFoncier,
-      "État du projet": sub.etatProjet,
-      "Montant investissement": sub.montantInvestissement,
-      "Difficulté principale": sub.difficultePrincipale,
-      "Action engagée": sub.actionEngagee,
-      "Résultat": sub.resultatTraitement,
-      "Date de mise à jour": sub.dateMiseAJour
-    }));
-
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Projets");
-    
-    XLSX.writeFile(workbook, "Suivi_Projets_AAPI.xlsx");
+    generateExcel(submissions);
   };
 
   return (
