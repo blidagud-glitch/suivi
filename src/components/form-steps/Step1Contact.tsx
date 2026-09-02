@@ -96,6 +96,7 @@ export default function Step1Contact({
               onChange={e => update({ informationPromoteurAutre: e.target.value })}
               placeholder="Précisez..."
               className="mt-2"
+              required
             />
           )}
         </div>
@@ -115,7 +116,7 @@ export default function Step1Contact({
             ].map(opt => (
               <label key={opt.id} className="flex items-center gap-2 cursor-pointer">
                 <input 
-                  type="radio" name="raison_non" 
+                  type="radio" name="raison_non" required
                   checked={data.raisonNonContact === opt.id} 
                   onChange={() => update({ raisonNonContact: opt.id })}
                 />
@@ -129,6 +130,7 @@ export default function Step1Contact({
               onChange={e => update({ raisonNonContactAutre: e.target.value })}
               placeholder="Précisez la raison..."
               className="mt-2"
+              required
             />
           )}
         </div>

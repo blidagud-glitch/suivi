@@ -98,7 +98,7 @@ export default function SubmissionDetails({ submission, onClose }: Props) {
 
         {/* Section 3 */}
         <section>
-          <h3 className="text-lg font-bold text-emerald-700 mb-4 border-b border-emerald-100 pb-2">3. Foncier & Permis</h3>
+          <h3 className="text-lg font-bold text-emerald-700 mb-4 border-b border-emerald-100 pb-2">3. Foncier, Permis & PPI</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <DetailItem label="Nécessite Foncier" value={submission.necessiteFoncier} />
             <DetailItem label="Type Foncier" value={submission.typeFoncier} />
@@ -109,6 +109,12 @@ export default function SubmissionDetails({ submission, onClose }: Props) {
             
             <DetailItem label="Nécessite Permis" value={submission.necessitePermis} />
             <DetailItem label="État Permis" value={submission.etatPermis} />
+            {submission.dateDepotPermis && <DetailItem label="Date Dépôt Permis" value={submission.dateDepotPermis} />}
+            {submission.dateObtentionPermis && <DetailItem label="Date Obtention Permis" value={submission.dateObtentionPermis} />}
+
+            <DetailItem label="Nécessite PPI" value={submission.necessitePPI} />
+            <DetailItem label="État PPI" value={submission.etatPPI} />
+            {submission.dateDepotPPI && <DetailItem label="Date Dépôt PPI" value={submission.dateDepotPPI} />}
           </div>
         </section>
 
@@ -119,6 +125,21 @@ export default function SubmissionDetails({ submission, onClose }: Props) {
             <DetailItem label="État du projet" value={submission.etatProjet?.replace(/_/g, ' ')} />
             <DetailItem label="Montant Investissement" value={submission.montantInvestissement} />
             <DetailItem label="Taux avancement physique" value={submission.tauxAvancementPhysique} />
+            {submission.tauxUtilisationCapacite && <DetailItem label="Taux Utilisation Capacité" value={submission.tauxUtilisationCapacite} />}
+            
+            {(submission.emploisCreesExecution || submission.emploisCreesMaitrise || submission.emploisCreesCadre) && (
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Emplois Créés</span>
+                <span className="text-sm text-slate-900 font-medium">
+                  Exécution: {submission.emploisCreesExecution || 0} | Maitrise: {submission.emploisCreesMaitrise || 0} | Cadre: {submission.emploisCreesCadre || 0}
+                </span>
+              </div>
+            )}
+
+            {submission.perspectivesRelance === 'oui' && <DetailItem label="Date prévisionnelle relance" value={submission.dateRelance} />}
+            {submission.miseEnExploitation && <DetailItem label="Mise en exploitation" value={submission.miseEnExploitation?.replace(/_/g, ' ')} />}
+            {submission.datePleineExploitation && <DetailItem label="Date prévue pleine exploitation" value={submission.datePleineExploitation} />}
+
             <DetailItem label="Difficulté principale" value={submission.difficultePrincipale} />
             
             <div className="col-span-1 md:col-span-2">
@@ -129,19 +150,48 @@ export default function SubmissionDetails({ submission, onClose }: Props) {
                 )) : <span className="text-sm text-slate-400">Aucune</span>}
               </div>
             </div>
+
+            {submission.demarchesRealisees && submission.demarchesRealisees.length > 0 && (
+              <div className="col-span-1 md:col-span-2 mt-2">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Démarches Réalisées</span>
+                <div className="mt-1 flex flex-wrap gap-2">
+                  {submission.demarchesRealisees.map((d, i) => (
+                    <span key={i} className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-sm">{d}</span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </section>
 
-        {/* Section 5 */}
-        <section>
-          <h3 className="text-lg font-bold text-emerald-700 mb-4 border-b border-emerald-100 pb-2">5. Signature</h3>
-          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col items-center justify-center min-h-[150px]">
-            {submission.signatureDataUrl ? (
-              <img src={submission.signatureDataUrl} alt="Signature du promoteur" className="max-h-32 object-contain mix-blend-multiply" />
-            ) : (
-              <p className="text-slate-400 text-sm italic">Aucune signature fournie</p>
-            )}
-            <p className="mt-2 text-xs text-slate-500 uppercase font-bold tracking-widest">Signature du Promoteur</p>
+        {/* Section 5 & 8 */}
+        <section className="space-y-8">
+          <div>
+            <h3 className="text-lg font-bold text-emerald-700 mb-4 border-b border-emerald-100 pb-2">8. Suivi du traitement des projets</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <DetailItem label="Action engagée" value={submission.actionEngagee === 'autre' ? submission.actionEngageeAutre : submission.actionEngagee?.replace(/_/g, ' ')} />
+              <DetailItem label="Partie intervenante" value={['locale', 'centrale', 'public', 'autre'].includes(submission.partieIntervenante) ? submission.partieIntervenanteAutre : submission.partieIntervenante?.replace(/_/g, ' ')} />
+              <DetailItem label="État du traitement" value={submission.etatTraitement?.replace(/_/g, ' ')} />
+              <DetailItem label="Échéance de traitement" value={submission.echeanceTraitement} />
+              <DetailItem label="Résultat du traitement" value={submission.resultatTraitement === 'autre' ? submission.resultatTraitementAutre : submission.resultatTraitement?.replace(/_/g, ' ')} />
+              <DetailItem label="Date de mise à jour" value={submission.dateMiseAJour} />
+              <DetailItem label="Possibilité réactivation" value={submission.possibiliteReactivation?.replace(/_/g, ' ')} />
+              <div className="col-span-1 md:col-span-2">
+                <DetailItem label="Observations" value={submission.observations} />
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-lg font-bold text-emerald-700 mb-4 border-b border-emerald-100 pb-2">Signature</h3>
+            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col items-center justify-center min-h-[150px]">
+              {submission.signatureDataUrl ? (
+                <img src={submission.signatureDataUrl} alt="Signature du promoteur" className="max-h-32 object-contain mix-blend-multiply" />
+              ) : (
+                <p className="text-slate-400 text-sm italic">Aucune signature fournie</p>
+              )}
+              <p className="mt-2 text-xs text-slate-500 uppercase font-bold tracking-widest">Signature du Promoteur</p>
+            </div>
           </div>
         </section>
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FormState, initialFormState } from '../types';
 import { getSubmission, saveSubmission } from '../lib/store';
 import { Button } from './ui/Button';
@@ -12,8 +12,10 @@ import Step5Signature from './form-steps/Step5Signature';
 
 export default function PromoterForm({ sessionId, onComplete }: { sessionId: string, onComplete?: () => void }) {
   const [currentStep, setCurrentStep] = useState(1);
+  const [maxStepReached, setMaxStepReached] = useState(1);
   const [formData, setFormData] = useState<FormState>({ ...initialFormState, sessionId });
   const [isLoaded, setIsLoaded] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
   const totalSteps = 5;
 
   useEffect(() => {
@@ -34,8 +36,32 @@ export default function PromoterForm({ sessionId, onComplete }: { sessionId: str
     saveSubmission(updated);
   };
 
-  const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, totalSteps));
+  const nextStep = () => {
+    setCurrentStep(prev => {
+      const next = Math.min(prev + 1, totalSteps);
+      setMaxStepReached(Math.max(maxStepReached, next));
+      return next;
+    });
+  };
+  
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
+
+  const handleStepClick = (targetStep: number) => {
+    if (targetStep < currentStep) {
+      // Allow going back without validation
+      setCurrentStep(targetStep);
+    } else if (targetStep > currentStep) {
+      // Validate current step before going forward
+      if (formRef.current && !formRef.current.reportValidity()) {
+        return;
+      }
+      // Allow jumping to already reached steps or just the next one
+      if (targetStep <= maxStepReached + 1) {
+        setCurrentStep(targetStep);
+        setMaxStepReached(Math.max(maxStepReached, targetStep));
+      }
+    }
+  };
 
   const handleSubmit = () => {
     updateForm({ status: 'submitted' });
@@ -75,20 +101,27 @@ export default function PromoterForm({ sessionId, onComplete }: { sessionId: str
           <div className="bg-white/60 backdrop-blur-md rounded-3xl border border-white/40 shadow-xl p-6 md:p-8 flex-1 flex flex-col">
             <div className="flex items-center justify-between mb-8">
               <div className="flex gap-2 flex-wrap">
-                {Array.from({ length: totalSteps }).map((_, i) => (
-                  <button 
-                    key={i} 
-                    type="button"
-                    onClick={() => setCurrentStep(i + 1)}
-                    className={`h-2 w-8 sm:w-12 rounded-full transition-colors cursor-pointer ${i + 1 <= currentStep ? 'bg-emerald-500' : 'bg-slate-200 hover:bg-emerald-200'}`}
-                    title={`Aller à l'étape ${i + 1}`}
-                  />
-                ))}
+                {Array.from({ length: totalSteps }).map((_, i) => {
+                  const stepNum = i + 1;
+                  const isClickable = stepNum <= maxStepReached + 1 || stepNum < currentStep;
+                  return (
+                    <button 
+                      key={i} 
+                      type="button"
+                      onClick={() => handleStepClick(stepNum)}
+                      disabled={!isClickable}
+                      className={`h-2 w-8 sm:w-12 rounded-full transition-colors ${
+                        stepNum <= currentStep ? 'bg-emerald-500' : 'bg-slate-200'
+                      } ${isClickable ? 'cursor-pointer hover:bg-emerald-200' : 'cursor-not-allowed opacity-50'}`}
+                      title={`Aller à l'étape ${stepNum}`}
+                    />
+                  );
+                })}
               </div>
               <span className="text-sm font-bold text-slate-500 uppercase tracking-wide ml-4">Étape {currentStep} / {totalSteps}</span>
             </div>
 
-            <form onSubmit={(e) => {
+            <form ref={formRef} onSubmit={(e) => {
               e.preventDefault();
               if (currentStep < totalSteps) {
                 nextStep();

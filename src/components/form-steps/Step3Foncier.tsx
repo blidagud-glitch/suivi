@@ -100,7 +100,7 @@ export default function Step3Foncier({
                 ].map(opt => (
                   <label key={opt.id} className="flex items-center gap-2 cursor-pointer">
                     <input 
-                      type="radio" name="etat_foncier" 
+                      type="radio" name="etat_foncier" required 
                       checked={data.etatDemarchesFoncieres === opt.id} 
                       onChange={() => update({ etatDemarchesFoncieres: opt.id })}
                     />
@@ -114,20 +114,62 @@ export default function Step3Foncier({
       </div>
 
       <div className="space-y-6">
-        <h3 className="font-semibold text-gray-900 border-b pb-2">5.4 Permis de construire</h3>
+        <h3 className="font-semibold text-gray-900 border-b pb-2">5.4. Permis de construire :</h3>
         <div className="space-y-4">
-          <Label>Le projet nécessite-t-il un permis de construire ?</Label>
-          <div className="flex gap-4">
+          <Label>5.4.1. Le projet nécessite-t-il un permis de construire ?</Label>
+          <div className="flex gap-4 flex-col sm:flex-row">
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="radio" name="permis" required checked={data.necessitePermis === 'oui'} onChange={() => update({ necessitePermis: 'oui' })} />
-              <span>Oui</span>
+              <span className="text-sm">Oui (Aller à la question 5.4.2)</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="permis" required checked={data.necessitePermis === 'non'} onChange={() => update({ necessitePermis: 'non' })} />
-              <span>Non</span>
+              <input type="radio" name="permis" required checked={data.necessitePermis === 'non'} onChange={() => update({ necessitePermis: 'non', etatPermis: '', dateDepotPermis: '', dateObtentionPermis: '' })} />
+              <span className="text-sm">Non (Aller à la question 5.5)</span>
             </label>
           </div>
         </div>
+
+        {data.necessitePermis === 'oui' && (
+          <div className="space-y-4 bg-gray-50 p-4 rounded-lg border">
+            <Label>5.4.2. État d'avancement des démarches pour l'obtention du permis de construire</Label>
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="etat_permis" required checked={data.etatPermis === 'aucune'} onChange={() => update({ etatPermis: 'aucune' })} />
+                <span className="text-sm">Aucune démarche engagée</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="etat_permis" required checked={data.etatPermis === 'deposee'} onChange={() => update({ etatPermis: 'deposee' })} />
+                <span className="text-sm">Demande déposée → Date du dépôt :</span>
+              </label>
+              {data.etatPermis === 'deposee' && (
+                <div className="ml-6">
+                  <Input type="date" value={data.dateDepotPermis} onChange={e => update({ dateDepotPermis: e.target.value })} className="w-auto h-8" />
+                </div>
+              )}
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="etat_permis" required checked={data.etatPermis === 'instruction'} onChange={() => update({ etatPermis: 'instruction' })} />
+                <span className="text-sm">Dossier en cours d'instruction</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="etat_permis" required checked={data.etatPermis === 'obtenu'} onChange={() => update({ etatPermis: 'obtenu' })} />
+                <span className="text-sm">Permis obtenu → Date d'obtention :</span>
+              </label>
+              {data.etatPermis === 'obtenu' && (
+                <div className="ml-6">
+                  <Input type="date" value={data.dateObtentionPermis} onChange={e => update({ dateObtentionPermis: e.target.value })} className="w-auto h-8" />
+                </div>
+              )}
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="etat_permis" required checked={data.etatPermis === 'reserves'} onChange={() => update({ etatPermis: 'reserves' })} />
+                <span className="text-sm">Réserves formulées</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="etat_permis" required checked={data.etatPermis === 'rejete'} onChange={() => update({ etatPermis: 'rejete' })} />
+                <span className="text-sm">Dossier rejeté</span>
+              </label>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="space-y-6">
@@ -172,7 +214,7 @@ export default function Step3Foncier({
                 ].map(opt => (
                   <label key={opt.id} className="flex items-center gap-2 cursor-pointer">
                     <input 
-                      type="radio" name="etat_ppi" 
+                      type="radio" name="etat_ppi" required 
                       checked={data.etatPPI === opt.id} 
                       onChange={() => update({ etatPPI: opt.id })}
                     />

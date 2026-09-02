@@ -83,7 +83,7 @@ export default function Step2Conditions({
               ].map(opt => (
                 <label key={opt.id} className="flex items-center gap-2 cursor-pointer">
                   <input 
-                    type="radio" name="motif_non_pres" 
+                    type="radio" name="motif_non_pres" required 
                     checked={data.motifNonPresentation === opt.id} 
                     onChange={() => update({ motifNonPresentation: opt.id })}
                   />
@@ -206,7 +206,7 @@ export default function Step2Conditions({
               ].map(opt => (
                 <label key={opt.id} className="flex items-center gap-2 cursor-pointer">
                   <input 
-                    type="radio" name="etat_credit" 
+                    type="radio" name="etat_credit" required 
                     checked={data.etatCredit === opt.id} 
                     onChange={() => update({ etatCredit: opt.id })}
                   />
