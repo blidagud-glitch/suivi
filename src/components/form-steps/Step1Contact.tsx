@@ -21,7 +21,7 @@ export default function Step1Contact({
             id="attestation" 
             value={data.attestationNumero} 
             onChange={e => update({ attestationNumero: e.target.value })} 
-            placeholder="Ex: 123456"
+            placeholder="Ex: 2026/09/0001"
             required
           />
         </div>

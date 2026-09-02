@@ -1,10 +1,9 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { FormState } from '../types';
 import { Button } from './ui/Button';
-import { Printer, Download } from 'lucide-react';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
+import { Printer } from 'lucide-react';
 import Logo from './ui/Logo';
+import { useReactToPrint } from 'react-to-print';
 
 interface Props {
   submission: FormState;
@@ -12,39 +11,12 @@ interface Props {
 }
 
 export default function SubmissionDetails({ submission, onClose }: Props) {
-  const [isExporting, setIsExporting] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
-  const exportPDF = async () => {
-    if (!printRef.current) return;
-    setIsExporting(true);
-    
-    try {
-      const canvas = await html2canvas(printRef.current, {
-        scale: 2,
-        useCORS: true,
-        logging: false
-      });
-      
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-      
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`AAPI-Fiche-Projet-${submission.sessionId}.pdf`);
-    } catch (error) {
-      console.error("Error generating PDF", error);
-      alert("Erreur lors de la génération du PDF.");
-    } finally {
-      setIsExporting(false);
-    }
-  };
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: `AAPI-Fiche-${submission.sessionId}`,
+  });
 
   return (
     <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-slate-200 shadow-xl overflow-hidden flex flex-col h-full max-h-[80vh] print:max-h-none print:shadow-none print:border-none print:bg-white print:rounded-none">
@@ -54,15 +26,15 @@ export default function SubmissionDetails({ submission, onClose }: Props) {
           <p className="text-sm text-slate-500">Session ID: <span className="font-mono">{submission.sessionId}</span></p>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="default" onClick={exportPDF} disabled={isExporting} className="bg-slate-800 text-white hover:bg-slate-700">
-            {isExporting ? <Download className="w-4 h-4 mr-2 animate-bounce" /> : <Printer className="w-4 h-4 mr-2" />}
-            {isExporting ? 'Génération...' : 'Imprimer (PDF)'}
+          <Button variant="default" onClick={() => handlePrint()} className="bg-slate-800 text-white hover:bg-slate-700">
+            <Printer className="w-4 h-4 mr-2" />
+            Imprimer
           </Button>
           <Button variant="outline" onClick={onClose}>Retour au tableau de bord</Button>
         </div>
       </div>
       
-      <div ref={printRef} className="p-8 overflow-y-auto flex-1 space-y-8 bg-white print:p-0 print:overflow-visible">
+      <div ref={printRef} id="print-section" className="p-8 overflow-y-auto flex-1 space-y-8 bg-white print:p-0 print:overflow-visible">
         <div className="mb-6 pb-6 border-b border-slate-200 flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-bold text-slate-900">AAPI - Fiche de Suivi de Projet</h1>
@@ -92,6 +64,36 @@ export default function SubmissionDetails({ submission, onClose }: Props) {
             <DetailItem label="Nécessite Crédit" value={submission.necessiteCredit} />
             <DetailItem label="État Crédit" value={submission.etatCredit} />
           </div>
+
+          {submission.capitalRepartition && submission.capitalRepartition.length > 0 && (
+            <div className="mt-6 border border-slate-200 rounded-lg overflow-hidden">
+              <h4 className="text-sm font-bold text-slate-700 bg-slate-50 p-3 border-b border-slate-200">5.1. Répartition du capital</h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-slate-50/50 text-slate-500 text-xs uppercase">
+                    <tr>
+                      <th className="px-4 py-2 border-b">Associé</th>
+                      <th className="px-4 py-2 border-b">Nationalité</th>
+                      <th className="px-4 py-2 border-b">Part (%)</th>
+                      <th className="px-4 py-2 border-b">Montant</th>
+                      <th className="px-4 py-2 border-b">Devise</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {submission.capitalRepartition.map((entry, idx) => (
+                      <tr key={idx} className="border-b last:border-0 border-slate-100">
+                        <td className="px-4 py-2 font-medium text-slate-700">{entry.associe}</td>
+                        <td className="px-4 py-2">{entry.nationalite}</td>
+                        <td className="px-4 py-2">{entry.part}</td>
+                        <td className="px-4 py-2">{entry.montant}</td>
+                        <td className="px-4 py-2">{entry.devise}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Section 3 */}

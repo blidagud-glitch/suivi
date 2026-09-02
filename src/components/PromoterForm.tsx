@@ -76,7 +76,13 @@ export default function PromoterForm({ sessionId, onComplete }: { sessionId: str
             <div className="flex items-center justify-between mb-8">
               <div className="flex gap-2 flex-wrap">
                 {Array.from({ length: totalSteps }).map((_, i) => (
-                  <span key={i} className={`h-2 w-8 sm:w-12 rounded-full ${i + 1 <= currentStep ? 'bg-emerald-500' : 'bg-slate-200'}`}></span>
+                  <button 
+                    key={i} 
+                    type="button"
+                    onClick={() => setCurrentStep(i + 1)}
+                    className={`h-2 w-8 sm:w-12 rounded-full transition-colors cursor-pointer ${i + 1 <= currentStep ? 'bg-emerald-500' : 'bg-slate-200 hover:bg-emerald-200'}`}
+                    title={`Aller à l'étape ${i + 1}`}
+                  />
                 ))}
               </div>
               <span className="text-sm font-bold text-slate-500 uppercase tracking-wide ml-4">Étape {currentStep} / {totalSteps}</span>

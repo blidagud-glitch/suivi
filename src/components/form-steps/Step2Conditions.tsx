@@ -38,6 +38,37 @@ export default function Step2Conditions({
           </div>
         </div>
 
+        {data.presentationGUD === 'pas_presente' && (
+          <div className="space-y-4 bg-gray-50 p-4 rounded-lg border">
+            <Label>4.2. Proposition d'un autre rendez-vous</Label>
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="rdv" checked={data.autreRendezVous === 'oui'} onChange={() => update({ autreRendezVous: 'oui' })} />
+                <span className="text-sm">Oui</span>
+              </label>
+              {data.autreRendezVous === 'oui' && (
+                <div className="ml-6 flex items-center gap-2">
+                  <span className="text-sm">Date prévue :</span>
+                  <Input type="date" value={data.autreRendezVousDate} onChange={e => update({ autreRendezVousDate: e.target.value })} className="w-auto h-8" />
+                </div>
+              )}
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="rdv" checked={data.autreRendezVous === 'non'} onChange={() => update({ autreRendezVous: 'non' })} />
+                <span className="text-sm">Non</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="rdv" checked={data.autreRendezVous === 'autre'} onChange={() => update({ autreRendezVous: 'autre' })} />
+                <span className="text-sm">Autre :</span>
+              </label>
+              {data.autreRendezVous === 'autre' && (
+                <div className="ml-6 flex items-center gap-2">
+                  <Input value={data.autreRendezVousAutre} onChange={e => update({ autreRendezVousAutre: e.target.value })} placeholder="Précisez..." className="mt-1" />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {data.presentationGUD === 'non_renseigne' || data.presentationGUD === 'pas_presente' ? (
           <div className="space-y-4 bg-gray-50 p-4 rounded-lg border">
             <Label>4.3 Motif de non-présentation ou de non-renseignement</Label>
@@ -73,26 +104,95 @@ export default function Step2Conditions({
       </div>
 
       <div className="space-y-6">
-        <h3 className="font-semibold text-gray-900 border-b pb-2">5. Informations sur les conditions de réalisation</h3>
+        <h3 className="font-semibold text-gray-900 border-b pb-2">5. Informations sur les conditions de réalisation du projet</h3>
         
-        {/* Note: In a full app we'd have a dynamic table for Capital, keeping it simple here for space */}
         <div className="space-y-4">
-          <Label>5.2 Financement (Le projet nécessite-t-il un crédit bancaire ?)</Label>
+          <Label>5.1. Répartition du capital :</Label>
+          <div className="overflow-x-auto border rounded-lg">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-slate-50 text-slate-700">
+                <tr>
+                  <th className="px-3 py-2 border-b">N°</th>
+                  <th className="px-3 py-2 border-b">Associé / Actionnaire</th>
+                  <th className="px-3 py-2 border-b">Nationalité</th>
+                  <th className="px-3 py-2 border-b">Part du capital (%)</th>
+                  <th className="px-3 py-2 border-b">Montant</th>
+                  <th className="px-3 py-2 border-b">Devise (USD/Euro)</th>
+                  <th className="px-3 py-2 border-b"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.capitalRepartition.map((entry, idx) => (
+                  <tr key={entry.id} className="border-b last:border-0">
+                    <td className="px-3 py-2">{idx + 1}</td>
+                    <td className="px-3 py-2">
+                      <Input value={entry.associe} onChange={e => {
+                        const newRep = [...data.capitalRepartition];
+                        newRep[idx].associe = e.target.value;
+                        update({ capitalRepartition: newRep });
+                      }} className="h-8 min-w-[150px]" />
+                    </td>
+                    <td className="px-3 py-2">
+                      <Input value={entry.nationalite} onChange={e => {
+                        const newRep = [...data.capitalRepartition];
+                        newRep[idx].nationalite = e.target.value;
+                        update({ capitalRepartition: newRep });
+                      }} className="h-8 min-w-[100px]" />
+                    </td>
+                    <td className="px-3 py-2">
+                      <Input type="number" value={entry.part || ''} onChange={e => {
+                        const newRep = [...data.capitalRepartition];
+                        newRep[idx].part = parseFloat(e.target.value) || 0;
+                        update({ capitalRepartition: newRep });
+                      }} className="h-8 w-24" />
+                    </td>
+                    <td className="px-3 py-2">
+                      <Input type="number" value={entry.montant || ''} onChange={e => {
+                        const newRep = [...data.capitalRepartition];
+                        newRep[idx].montant = parseFloat(e.target.value) || 0;
+                        update({ capitalRepartition: newRep });
+                      }} className="h-8 w-24" />
+                    </td>
+                    <td className="px-3 py-2">
+                      <Input value={entry.devise} onChange={e => {
+                        const newRep = [...data.capitalRepartition];
+                        newRep[idx].devise = e.target.value;
+                        update({ capitalRepartition: newRep });
+                      }} className="h-8 w-24" />
+                    </td>
+                    <td className="px-3 py-2">
+                      <button type="button" onClick={() => {
+                        update({ capitalRepartition: data.capitalRepartition.filter(e => e.id !== entry.id) });
+                      }} className="text-red-500 hover:bg-red-50 p-1 rounded">✕</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <button type="button" onClick={() => {
+            update({ capitalRepartition: [...data.capitalRepartition, { id: Date.now().toString(), associe: '', nationalite: '', part: 0, montant: 0, devise: '' }] });
+          }} className="text-sm text-blue-600 hover:underline">+ Ajouter un associé</button>
+        </div>
+
+        <div className="space-y-4">
+          <Label>5.2. Financement :</Label>
+          <Label className="block mt-2">5.2.1. Le projet nécessite-t-il un crédit bancaire ?</Label>
           <div className="flex gap-4">
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="radio" name="credit" required checked={data.necessiteCredit === 'oui'} onChange={() => update({ necessiteCredit: 'oui' })} />
-              <span>Oui</span>
+              <span>Oui (Aller à la question 5.2.2)</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="radio" name="credit" required checked={data.necessiteCredit === 'non'} onChange={() => update({ necessiteCredit: 'non', etatCredit: '' })} />
-              <span>Non</span>
+              <span>Non (Aller à la question 5.3)</span>
             </label>
           </div>
         </div>
 
         {data.necessiteCredit === 'oui' && (
           <div className="space-y-4 bg-gray-50 p-4 rounded-lg border">
-            <Label>État d'avancement de la demande de crédit</Label>
+            <Label>5.2.2. Si oui, quel est l'état d'avancement de votre demande de crédit ?</Label>
             <div className="grid sm:grid-cols-2 gap-2">
               {[
                 { id: 'aucune', label: 'Aucune démarche engagée' },

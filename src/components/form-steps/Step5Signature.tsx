@@ -102,6 +102,7 @@ export default function Step5Signature({
             onEnd={saveSignature}
           />
           <Button 
+            type="button"
             variant="ghost" 
             onClick={clearSignature}
             className="absolute top-2 right-2 px-2 py-1 h-auto text-xs bg-white/80 hover:bg-white"

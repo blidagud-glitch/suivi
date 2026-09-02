@@ -18,7 +18,15 @@ export default function Dashboard({ onLogout, role }: { onLogout: () => void, ro
   const [activeTab, setActiveTab] = useState<'projects' | 'agents' | 'settings'>('projects');
 
   useEffect(() => {
+    // Initial fetch
     getSubmissions().then(setSubmissions);
+
+    // Set up polling interval for real-time updates
+    const intervalId = setInterval(() => {
+      getSubmissions().then(setSubmissions);
+    }, 5000);
+
+    return () => clearInterval(intervalId);
   }, []);
 
   const handleDelete = async (id: string) => {

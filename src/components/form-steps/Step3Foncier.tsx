@@ -54,24 +54,60 @@ export default function Step3Foncier({
               <Input value={data.localisationFoncier} onChange={e => update({ localisationFoncier: e.target.value })} />
             </div>
             
-            <div className="space-y-2">
-              <Label>Mode d'accès au foncier</Label>
-              <select 
-                className="w-full h-10 px-3 border rounded-md"
-                value={data.modeAccesFoncier}
-                onChange={e => update({ modeAccesFoncier: e.target.value })}
-              >
-                <option value="">Sélectionner</option>
-                <option value="concession">Concession de l'État</option>
-                <option value="acquisition_particulier">Acquisition (particulier)</option>
-                <option value="acquisition_entreprise">Acquisition (entreprise)</option>
-                <option value="location">Location</option>
-                <option value="deja_detenu">Déjà détenu</option>
-                <option value="autre">Autre</option>
-              </select>
+            <div className="space-y-3">
+              <Label>5.3.5. Mode d'accès au foncier</Label>
+              <div className="space-y-2">
+                {[
+                  { id: 'concession_aapi', label: "Concession du domaine privé de l'État (Plateforme AAPI)" },
+                  { id: 'acquisition_particulier', label: "Acquisition auprès d'un particulier" },
+                  { id: 'acquisition_entreprise', label: "Acquisition auprès d'une entreprise" },
+                  { id: 'location', label: "Location" },
+                  { id: 'deja_detenu', label: "Terrain déjà détenu par le promoteur" },
+                  { id: 'autre', label: "Autre" }
+                ].map(opt => (
+                  <label key={opt.id} className="flex items-center gap-2 cursor-pointer">
+                    <input 
+                      type="radio" name="mode_foncier" 
+                      checked={data.modeAccesFoncier === opt.id} 
+                      onChange={() => update({ modeAccesFoncier: opt.id })}
+                    />
+                    <span className="text-sm">{opt.label}</span>
+                  </label>
+                ))}
+              </div>
               {data.modeAccesFoncier === 'autre' && (
-                <Input value={data.modeAccesFoncierAutre} onChange={e => update({ modeAccesFoncierAutre: e.target.value })} placeholder="Précisez..." className="mt-2" />
+                <div className="ml-6">
+                  <Input value={data.modeAccesFoncierAutre} onChange={e => update({ modeAccesFoncierAutre: e.target.value })} placeholder="Précisez..." className="mt-1" />
+                </div>
               )}
+            </div>
+
+            <div className="space-y-3 border-t pt-4">
+              <Label>5.3.6. État d'avancement des démarches foncières</Label>
+              <div className="grid sm:grid-cols-2 gap-2">
+                {[
+                  { id: 'aucune', label: "Aucune démarche engagée" },
+                  { id: 'identifie', label: "Terrain identifié" },
+                  { id: 'deposee', label: "Demande déposée" },
+                  { id: 'instruction', label: "Dossier en cours d'instruction" },
+                  { id: 'favorable', label: "Avis favorable obtenu" },
+                  { id: 'attribution', label: "Décision d'attribution obtenue" },
+                  { id: 'acte_signe', label: "Acte de concession signé" },
+                  { id: 'mis_disposition', label: "Terrain mis à disposition" },
+                  { id: 'acquis', label: "Terrain acquis" },
+                  { id: 'suspendu', label: "Dossier suspendu" },
+                  { id: 'rejete', label: "Dossier rejeté" }
+                ].map(opt => (
+                  <label key={opt.id} className="flex items-center gap-2 cursor-pointer">
+                    <input 
+                      type="radio" name="etat_foncier" 
+                      checked={data.etatDemarchesFoncieres === opt.id} 
+                      onChange={() => update({ etatDemarchesFoncieres: opt.id })}
+                    />
+                    <span className="text-sm">{opt.label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -96,19 +132,74 @@ export default function Step3Foncier({
 
       <div className="space-y-6">
         <h3 className="font-semibold text-gray-900 border-b pb-2">5.5 Programme prévisionnel d’importation (PPI)</h3>
+        
         <div className="space-y-4">
-          <Label>Nécessite-t-il l’accomplissement de formalités PPI ?</Label>
-          <div className="flex gap-4">
+          <Label>5.5.1. Le projet nécessite-t-il l’accomplissement de formalités relatives au PPI ?</Label>
+          <div className="flex flex-col gap-3">
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="radio" name="ppi" required checked={data.necessitePPI === 'oui'} onChange={() => update({ necessitePPI: 'oui' })} />
-              <span>Oui</span>
+              <span className="text-sm">Oui (continuer)</span>
             </label>
+            {data.necessitePPI === 'oui' && (
+              <div className="ml-6 flex items-center gap-2">
+                <span className="text-sm">Date de dépôt :</span>
+                <Input type="date" value={data.dateDepotPPI} onChange={e => update({ dateDepotPPI: e.target.value })} className="w-auto h-8" />
+              </div>
+            )}
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="radio" name="ppi" required checked={data.necessitePPI === 'non'} onChange={() => update({ necessitePPI: 'non' })} />
-              <span>Non</span>
+              <input type="radio" name="ppi" required checked={data.necessitePPI === 'non'} onChange={() => update({ necessitePPI: 'non', etatPPI: '', dateDepotPPI: '' })} />
+              <span className="text-sm">Non (Aller à la question 6)</span>
             </label>
           </div>
         </div>
+
+        {data.necessitePPI === 'oui' && (
+          <>
+            <div className="space-y-4 bg-gray-50 p-4 rounded-lg border">
+              <Label>5.5.2. État d’avancement de la demande relative au PPI</Label>
+              <div className="grid sm:grid-cols-2 gap-2">
+                {[
+                  { id: 'aucune', label: 'Aucune démarche engagée' },
+                  { id: 'preparation', label: 'Dossier en préparation' },
+                  { id: 'deposee', label: 'Demande déposée' },
+                  { id: 'examen', label: 'Demande en cours d\'examen' },
+                  { id: 'accord_total', label: 'Accord total sans modification' },
+                  { id: 'accord_partiel', label: 'Accord partiel' },
+                  { id: 'accord_reserve', label: 'Accord sous réserve de modifications' },
+                  { id: 'rejetee', label: 'Demande rejetée' },
+                  { id: 'attente_info', label: 'Demande en attente de complément d\'information' },
+                  { id: 'autre', label: 'Autre' }
+                ].map(opt => (
+                  <label key={opt.id} className="flex items-center gap-2 cursor-pointer">
+                    <input 
+                      type="radio" name="etat_ppi" 
+                      checked={data.etatPPI === opt.id} 
+                      onChange={() => update({ etatPPI: opt.id })}
+                    />
+                    <span className="text-sm">{opt.label}</span>
+                  </label>
+                ))}
+              </div>
+              {data.etatPPI === 'autre' && (
+                <div className="mt-2">
+                  <Input 
+                    value={(data as any).etatPPIAutre || ''} 
+                    onChange={e => update({ etatPPIAutre: e.target.value } as any)} 
+                    placeholder="Précisez..." 
+                  />
+                </div>
+              )}
+            </div>
+            
+            <div className="space-y-2 bg-gray-50 p-4 rounded-lg border">
+              <Label>5.5.3. Date de dépôt de la demande :</Label>
+              <div className="flex items-center gap-2">
+                <span className="text-sm">Date :</span>
+                <Input type="date" value={data.dateDepotPPI} onChange={e => update({ dateDepotPPI: e.target.value })} className="w-auto h-8" />
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
     </div>
