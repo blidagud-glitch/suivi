@@ -1,6 +1,6 @@
 {
-  "name": "",
-  "description": "",
+  "name": "Formulaire état d'avancement",
+  "description": "Formulaire de suivi de l'état d'avancement des projets inscrits auprès de l'AAPI.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

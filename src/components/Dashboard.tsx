@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getSubmissions, saveSubmission, deleteSubmission } from '../lib/store';
+import { getSubmissions, saveSubmission, deleteSubmission, subscribeToSubmissions } from '../lib/store';
 import { FormState, initialFormState } from '../types';
 import { Button } from './ui/Button';
 import { Plus, Download, Search, QrCode, Eye, Pencil, Trash2, Users, Settings, Upload } from 'lucide-react';
@@ -18,15 +18,10 @@ export default function Dashboard({ onLogout, role }: { onLogout: () => void, ro
   const [activeTab, setActiveTab] = useState<'projects' | 'agents' | 'settings'>('projects');
 
   useEffect(() => {
-    // Initial fetch
-    getSubmissions().then(setSubmissions);
-
-    // Set up polling interval for real-time updates
-    const intervalId = setInterval(() => {
-      getSubmissions().then(setSubmissions);
-    }, 5000);
-
-    return () => clearInterval(intervalId);
+    const unsubscribe = subscribeToSubmissions((data) => {
+      setSubmissions(data);
+    });
+    return () => unsubscribe();
   }, []);
 
   const handleDelete = async (id: string) => {

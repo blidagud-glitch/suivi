@@ -65,7 +65,7 @@ export default function PromoterForm({ sessionId, onComplete }: { sessionId: str
 
   const handleSubmit = () => {
     updateForm({ status: 'submitted' });
-    alert("Formulaire validé et envoyé avec succès !");
+    if (!onComplete) { alert("Formulaire validé et envoyé avec succès !"); }
     if (onComplete) {
       onComplete();
     } else {
@@ -75,7 +75,7 @@ export default function PromoterForm({ sessionId, onComplete }: { sessionId: str
 
   if (!isLoaded) return <div className="p-8 text-center">Chargement...</div>;
 
-  if (formData.status === 'submitted') {
+  if (formData.status === 'submitted' && !onComplete) {
     return (
       <div className="flex h-screen w-full items-center justify-center p-4">
         <div className="bg-white/60 backdrop-blur-md p-8 rounded-3xl shadow-xl border border-white/40 max-w-md w-full text-center">
@@ -153,7 +153,7 @@ export default function PromoterForm({ sessionId, onComplete }: { sessionId: str
                   </Button>
                 ) : (
                   <Button type="submit" variant="emerald">
-                    Valider et Envoyer
+                    {onComplete ? "Enregistrer et Fermer" : "Valider et Envoyer"}
                   </Button>
                 )}
               </div>

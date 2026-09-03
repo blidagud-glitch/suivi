@@ -102,22 +102,20 @@ export default function Step4Avancement({
         )}
       </div>
       
-      {data.difficultes.length > 0 && (
-        <div className="space-y-2 bg-gray-50 p-4 rounded-lg border">
-          <Label>{title2}</Label>
-          <select 
-            className="w-full h-10 px-3 border rounded-md text-sm"
-            value={data.difficultePrincipale}
-            onChange={e => update({ difficultePrincipale: e.target.value })}
-            required
-          >
-            <option value="">Sélectionner la contrainte principale</option>
-            {data.difficultes.map(d => (
-              <option key={d} value={d}>{d}</option>
-            ))}
-          </select>
-        </div>
-      )}
+      <div className="space-y-2 bg-gray-50 p-4 rounded-lg border">
+        <Label>{title2}</Label>
+        <select 
+          className="w-full h-10 px-3 border rounded-md text-sm"
+          value={data.difficultePrincipale}
+          onChange={e => update({ difficultePrincipale: e.target.value })}
+          required
+        >
+          <option value="">Sélectionner la contrainte principale</option>
+          {data.difficultes.map(d => (
+            <option key={d} value={d}>{d}</option>
+          ))}
+        </select>
+      </div>
     </div>
   );
 

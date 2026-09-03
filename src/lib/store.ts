@@ -1,31 +1,29 @@
 import { FormState } from "../types";
+import { db } from "./firebase";
+import { collection, doc, setDoc, getDocs, getDoc, deleteDoc, query, orderBy, onSnapshot } from "firebase/firestore";
 
 export const getSubmissions = async (): Promise<FormState[]> => {
   try {
-    const res = await fetch('/api/sessions');
-    if (res.ok) {
-      return await res.json();
-    }
+    const q = query(collection(db, "submissions"), orderBy("createdAt", "desc"));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(doc => doc.data() as FormState);
   } catch (e) {
-    console.error("Failed to fetch from API", e);
+    console.error("Failed to fetch from Firestore", e);
+    // Fallback if offline or errors
+    const data = localStorage.getItem("aapi_submissions");
+    return data ? JSON.parse(data) : [];
   }
-  // Fallback to local storage if API fails
-  const data = localStorage.getItem("aapi_submissions");
-  return data ? JSON.parse(data) : [];
 };
 
 export const saveSubmission = async (formState: FormState): Promise<void> => {
   try {
-    await fetch(`/api/sessions/${formState.sessionId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formState)
-    });
+    const docRef = doc(db, "submissions", formState.sessionId);
+    await setDoc(docRef, formState);
   } catch (e) {
-    console.error("Failed to save to API", e);
+    console.error("Failed to save to Firestore", e);
   }
   
-  // Also save to local storage as fallback
+  // Also save to local storage as fallback for offline
   const data = localStorage.getItem("aapi_submissions");
   const submissions: FormState[] = data ? JSON.parse(data) : [];
   const index = submissions.findIndex(s => s.sessionId === formState.sessionId);
@@ -39,13 +37,15 @@ export const saveSubmission = async (formState: FormState): Promise<void> => {
 
 export const getSubmission = async (sessionId: string): Promise<FormState | undefined> => {
   try {
-    const res = await fetch(`/api/sessions/${sessionId}`);
-    if (res.ok) {
-      return await res.json();
+    const docRef = doc(db, "submissions", sessionId);
+    const snap = await getDoc(docRef);
+    if (snap.exists()) {
+      return snap.data() as FormState;
     }
   } catch (e) {
-    console.error("Failed to fetch session from API", e);
+    console.error("Failed to fetch session from Firestore", e);
   }
+  
   // Fallback
   const data = localStorage.getItem("aapi_submissions");
   const submissions: FormState[] = data ? JSON.parse(data) : [];
@@ -54,12 +54,12 @@ export const getSubmission = async (sessionId: string): Promise<FormState | unde
 
 export const deleteSubmission = async (sessionId: string): Promise<void> => {
   try {
-    await fetch(`/api/sessions/${sessionId}`, {
-      method: 'DELETE'
-    });
+    const docRef = doc(db, "submissions", sessionId);
+    await deleteDoc(docRef);
   } catch (e) {
-    console.error("Failed to delete from API", e);
+    console.error("Failed to delete from Firestore", e);
   }
+  
   // Local fallback
   const data = localStorage.getItem("aapi_submissions");
   if (data) {
@@ -67,4 +67,16 @@ export const deleteSubmission = async (sessionId: string): Promise<void> => {
     submissions = submissions.filter(s => s.sessionId !== sessionId);
     localStorage.setItem("aapi_submissions", JSON.stringify(submissions));
   }
+};
+
+export const subscribeToSubmissions = (callback: (data: FormState[]) => void) => {
+  const q = query(collection(db, "submissions"), orderBy("createdAt", "desc"));
+  return onSnapshot(q, (snapshot) => {
+    const data = snapshot.docs.map(doc => doc.data() as FormState);
+    callback(data);
+    // update local storage mirror for offline fallback
+    localStorage.setItem("aapi_submissions", JSON.stringify(data));
+  }, (error) => {
+    console.error("Firebase realtime listener error", error);
+  });
 };

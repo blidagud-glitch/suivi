@@ -1,0 +1,22 @@
+{
+  "collections": [
+    {
+      "name": "submissions",
+      "description": "Stores AAPI form submissions",
+      "documents": [
+        {
+          "id": "sessionId (string)",
+          "fields": {
+             "sessionId": "string",
+             "createdAt": "string",
+             "status": "string",
+             "attestationNumero": "string",
+             "responsableEmail": "string",
+             "responsableTelephone": "string",
+             "etatProjet": "string"
+          }
+        }
+      ]
+    }
+  ]
+}
