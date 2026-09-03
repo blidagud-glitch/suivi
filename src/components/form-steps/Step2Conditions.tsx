@@ -140,16 +140,55 @@ export default function Step2Conditions({
                       }} className="h-8 min-w-[100px]" />
                     </td>
                     <td className="px-3 py-2">
-                      <Input type="number" value={entry.part || ''} onChange={e => {
+                      <Input type="number" min="0" max="100" value={entry.part || ''} onChange={e => {
+                        let val = parseFloat(e.target.value);
+                        if (isNaN(val) || val < 0) val = 0;
+                        const otherParts = data.capitalRepartition.reduce((acc, curr, i) => acc + (i === idx ? 0 : (curr.part || 0)), 0);
+                        if (otherParts + val > 100) {
+                          val = 100 - otherParts;
+                        }
                         const newRep = [...data.capitalRepartition];
-                        newRep[idx].part = parseFloat(e.target.value) || 0;
+                        newRep[idx].part = val;
+                        
+                        if (val > 0) {
+                          const ref = newRep.find((e, i) => i !== idx && e.part > 0 && e.montant > 0);
+                          if (ref) {
+                            const cap = ref.montant / (ref.part / 100);
+                            newRep[idx].montant = parseFloat(((val / 100) * cap).toFixed(2));
+                          }
+                        }
+                        
                         update({ capitalRepartition: newRep });
                       }} className="h-8 w-24" />
                     </td>
                     <td className="px-3 py-2">
                       <Input type="number" value={entry.montant || ''} onChange={e => {
+                        let val = parseFloat(e.target.value);
+                        if (isNaN(val) || val < 0) val = 0;
                         const newRep = [...data.capitalRepartition];
-                        newRep[idx].montant = parseFloat(e.target.value) || 0;
+                        newRep[idx].montant = val;
+                        
+                        if (newRep[idx].part > 0 && val > 0) {
+                          const newCap = val / (newRep[idx].part / 100);
+                          newRep.forEach((e, i) => {
+                            if (i !== idx && e.part > 0) {
+                              e.montant = parseFloat(((e.part / 100) * newCap).toFixed(2));
+                            }
+                          });
+                        } else if (val > 0 && newRep[idx].part === 0) {
+                          const ref = newRep.find((e, i) => i !== idx && e.part > 0 && e.montant > 0);
+                          if (ref) {
+                            const cap = ref.montant / (ref.part / 100);
+                            let computedPart = (val / cap) * 100;
+                            const otherParts = newRep.reduce((acc, curr, i) => acc + (i === idx ? 0 : (curr.part || 0)), 0);
+                            if (otherParts + computedPart > 100) {
+                              computedPart = 100 - otherParts;
+                              newRep[idx].montant = parseFloat(((computedPart / 100) * cap).toFixed(2));
+                            }
+                            newRep[idx].part = parseFloat(computedPart.toFixed(2));
+                          }
+                        }
+                        
                         update({ capitalRepartition: newRep });
                       }} className="h-8 w-24" />
                     </td>
@@ -168,11 +207,27 @@ export default function Step2Conditions({
                   </tr>
                 ))}
               </tbody>
+              <tfoot className="bg-slate-50 text-slate-700 font-semibold border-t">
+                <tr>
+                  <td colSpan={3} className="px-3 py-2 text-right">Total:</td>
+                  <td className="px-3 py-2">
+                    <span className={data.capitalRepartition.reduce((a, c) => a + (c.part || 0), 0) === 100 ? "text-emerald-600" : "text-amber-600"}>
+                      {data.capitalRepartition.reduce((a, c) => a + (c.part || 0), 0)}%
+                    </span>
+                  </td>
+                  <td colSpan={3}></td>
+                </tr>
+              </tfoot>
             </table>
           </div>
-          <button type="button" onClick={() => {
-            update({ capitalRepartition: [...data.capitalRepartition, { id: Date.now().toString(), associe: '', nationalite: '', part: 0, montant: 0, devise: '' }] });
-          }} className="text-sm text-blue-600 hover:underline">+ Ajouter un associé</button>
+          <div className="flex justify-between items-center">
+            <button type="button" onClick={() => {
+              update({ capitalRepartition: [...data.capitalRepartition, { id: Date.now().toString(), associe: '', nationalite: '', part: 0, montant: 0, devise: '' }] });
+            }} className="text-sm text-blue-600 hover:underline">+ Ajouter un associé</button>
+            {data.capitalRepartition.reduce((a, c) => a + (c.part || 0), 0) !== 100 && data.capitalRepartition.reduce((a, c) => a + (c.part || 0), 0) > 0 && (
+              <span className="text-xs text-amber-600 font-medium">La répartition totale devrait être de 100%</span>
+            )}
+          </div>
         </div>
 
         <div className="space-y-4">
