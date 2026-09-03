@@ -38,6 +38,43 @@ export default function Dashboard({ onLogout, role }: { onLogout: () => void, ro
     setSubmissions(updated);
   };
 
+
+  const exportToJson = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(submissions, null, 2));
+    const downloadAnchorNode = document.createElement("a");
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", `aapi_backup_${new Date().toISOString().split("T")[0]}.json`);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+  };
+
+  const handleImportJson = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      try {
+        const importedData = JSON.parse(e.target?.result as string);
+        if (Array.isArray(importedData)) {
+          if (window.confirm(`Vous allez importer ${importedData.length} formulaires. Voulez-vous continuer ?`)) {
+            for (const sub of importedData) {
+              await saveSubmission(sub);
+            }
+            alert("Importation réussie !");
+            event.target.value = "";
+          }
+        } else {
+          alert("Format de fichier invalide.");
+        }
+      } catch (err) {
+        alert("Erreur lors de la lecture du fichier JSON.");
+      }
+    };
+    reader.readAsText(file);
+  };
+
   const exportToExcel = () => {
     generateExcel(submissions);
   };
@@ -95,9 +132,20 @@ export default function Dashboard({ onLogout, role }: { onLogout: () => void, ro
             <h2 className="text-lg font-semibold text-slate-700">Tableau de Bord AAPI</h2>
           </div>
           <div className="flex gap-4">
-            <Button onClick={exportToExcel} variant="outline" className="flex items-center gap-2 hidden sm:flex border-slate-300">
+            <div className="relative">
+              <input type="file" accept=".json" onChange={handleImportJson} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" title="Importer" />
+              <Button variant="outline" className="flex items-center gap-2 border-slate-300 pointer-events-none">
+                <Upload className="w-4 h-4" />
+                <span className="hidden sm:inline">Importer</span>
+              </Button>
+            </div>
+            <Button onClick={exportToJson} variant="outline" className="flex items-center gap-2 border-slate-300">
               <Download className="w-4 h-4" />
-              Exporter Excel (.xlsx)
+              <span className="hidden sm:inline">Sauvegarder</span>
+            </Button>
+            <Button onClick={exportToExcel} variant="outline" className="flex items-center gap-2 border-slate-300">
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">Exporter Excel</span>
             </Button>
           </div>
         </header>

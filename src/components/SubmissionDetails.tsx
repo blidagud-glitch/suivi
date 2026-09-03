@@ -1,200 +1,219 @@
-import React, { useRef } from 'react';
+import React from 'react';
 import { FormState } from '../types';
 import { Button } from './ui/Button';
 import { Printer } from 'lucide-react';
-import Logo from './ui/Logo';
-import { useReactToPrint } from 'react-to-print';
+import { getLabel } from '../lib/mappings';
 
-interface Props {
-  submission: FormState;
-  onClose: () => void;
-}
-
-export default function SubmissionDetails({ submission, onClose }: Props) {
-  const printRef = useRef<HTMLDivElement>(null);
-
-  const handlePrint = useReactToPrint({
-    contentRef: printRef,
-    documentTitle: `AAPI-Fiche-${submission.sessionId}`,
-  });
-
+export default function SubmissionDetails({ 
+  submission, 
+  onClose 
+}: { 
+  submission: FormState, 
+  onClose: () => void 
+}) {
   return (
-    <div className="bg-white/90 backdrop-blur-md rounded-3xl border border-slate-200 shadow-xl overflow-hidden flex flex-col h-full max-h-[80vh] print:max-h-none print:shadow-none print:border-none print:bg-white print:rounded-none">
-      <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50/50 sticky top-0 z-10 print:hidden">
-        <div>
-          <h2 className="text-xl font-bold text-slate-800">Détails du Projet</h2>
-          <p className="text-sm text-slate-500">Session ID: <span className="font-mono">{submission.sessionId}</span></p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Button variant="default" onClick={() => handlePrint()} className="bg-slate-800 text-white hover:bg-slate-700">
-            <Printer className="w-4 h-4 mr-2" />
-            Imprimer
-          </Button>
-          <Button variant="outline" onClick={onClose}>Retour au tableau de bord</Button>
-        </div>
-      </div>
-      
-      <div ref={printRef} id="print-section" className="p-8 overflow-y-auto flex-1 space-y-8 bg-white print:p-0 print:overflow-visible">
-        <div className="mb-6 pb-6 border-b border-slate-200 flex items-start justify-between">
+    <div className="absolute inset-0 z-50 bg-slate-50/90 backdrop-blur-sm overflow-auto print:bg-white print:overflow-visible print:static">
+      <div className="max-w-5xl mx-auto my-8 bg-white rounded-3xl shadow-2xl overflow-hidden print:m-0 print:rounded-none print:shadow-none">
+        
+        {/* Header - Hidden when printing */}
+        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-800 text-white print:hidden">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">AAPI - Fiche de Suivi de Projet</h1>
-            <p className="text-slate-500 mt-1">Session ID: <span className="font-mono">{submission.sessionId}</span> | Date: {new Date(submission.createdAt).toLocaleDateString()}</p>
+            <h2 className="text-2xl font-bold">Détails de la soumission</h2>
+            <p className="text-slate-300">Session #{submission.sessionId}</p>
           </div>
-          <Logo sizeClasses="w-16 h-16" defaultClasses="bg-emerald-500 rounded-xl text-3xl" />
+          <div className="flex gap-3">
+            <Button variant="outline" className="bg-white text-slate-800 hover:bg-slate-100" onClick={() => window.print()}>
+              <Printer className="w-4 h-4 mr-2" /> Imprimer
+            </Button>
+            <Button variant="outline" className="bg-slate-700 text-white hover:bg-slate-600 border-slate-600" onClick={onClose}>Fermer</Button>
+          </div>
         </div>
 
-        {/* Section 1 */}
-        <section>
-          <h3 className="text-lg font-bold text-emerald-700 mb-4 border-b border-emerald-100 pb-2">1. Prise de contact</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <DetailItem label="N° Attestation" value={submission.attestationNumero} />
-            <DetailItem label="Email Responsable" value={submission.responsableEmail} />
-            <DetailItem label="Téléphone Responsable" value={submission.responsableTelephone} />
-            <DetailItem label="Contact Établi" value={submission.contactEtabli} />
-            <DetailItem label="Info Promoteur" value={submission.informationPromoteur || submission.informationPromoteurAutre} />
-          </div>
-        </section>
+        {/* Print Only Header */}
+        <div className="hidden print:block text-center border-b-2 border-black pb-4 mb-4">
+          <h1 className="text-2xl font-bold uppercase tracking-wider">Fiche d'État d'Avancement de Projet</h1>
+          <p className="text-sm">Session ID: {submission.sessionId} | Date: {submission.createdAt ? new Date(submission.createdAt).toLocaleDateString('fr-FR') : '-'}</p>
+        </div>
 
-        {/* Section 2 */}
-        <section>
-          <h3 className="text-lg font-bold text-emerald-700 mb-4 border-b border-emerald-100 pb-2">2. État d'avancement et Diagnostic</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <DetailItem label="Présentation GUD" value={submission.presentationGUD} />
-            <DetailItem label="Motif Non Présentation" value={submission.motifNonPresentation || submission.motifNonPresentationAutre} />
-            <DetailItem label="Nécessite Crédit" value={submission.necessiteCredit} />
-            <DetailItem label="État Crédit" value={submission.etatCredit} />
+        {/* Content - Compact for print */}
+        <div className="p-8 print:p-0 space-y-8 print:space-y-4 print:text-[11px] print:leading-tight">
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-8 print:gap-4">
+            
+            {/* Section 1 */}
+            <section className="print:break-inside-avoid">
+              <h3 className="text-lg print:text-sm font-bold text-emerald-700 print:text-black mb-4 print:mb-2 border-b border-emerald-100 print:border-black pb-2">1. Informations Générales</h3>
+              <div className="space-y-3 print:space-y-1">
+                <DetailItem label="N° Attestation" value={submission.attestationNumero} />
+                <DetailItem label="Email Responsable" value={submission.responsableEmail} />
+                <DetailItem label="Téléphone Responsable" value={submission.responsableTelephone} />
+                <DetailItem label="Contact Établi" value={getLabel('contactEtabli', submission.contactEtabli)} />
+                {submission.contactEtabli === 'informe' && <DetailItem label="Information Promoteur" value={submission.informationPromoteur === 'autre' ? submission.informationPromoteurAutre : submission.informationPromoteur?.replace(/_/g, ' ')} />}
+                {submission.contactEtabli === 'autre' && <DetailItem label="Raison Non Contact" value={submission.raisonNonContact === 'autre' ? submission.raisonNonContactAutre : submission.raisonNonContact?.replace(/_/g, ' ')} />}
+              </div>
+            </section>
+
+            {/* Section 2 */}
+            <section className="print:break-inside-avoid">
+              <h3 className="text-lg print:text-sm font-bold text-emerald-700 print:text-black mb-4 print:mb-2 border-b border-emerald-100 print:border-black pb-2">2. Présentation & Financement</h3>
+              <div className="space-y-3 print:space-y-1">
+                <DetailItem label="Présentation au GUD" value={getLabel('presentationGUD', submission.presentationGUD)} />
+                {submission.presentationGUD === 'pas_presente' && <DetailItem label="Motif Non Présentation" value={getLabel('motifNonPresentation', submission.motifNonPresentation === 'autre' ? submission.motifNonPresentationAutre : submission.motifNonPresentation)} />}
+                
+                <DetailItem label="Nécessite Crédit" value={getLabel('necessiteCredit', submission.necessiteCredit)} />
+                <DetailItem label="État Crédit" value={getLabel('etatCredit', submission.etatCredit)} />
+              </div>
+            </section>
+
           </div>
 
+          <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-8 print:gap-4">
+            
+            {/* Section 3 */}
+            <section className="print:break-inside-avoid">
+              <h3 className="text-lg print:text-sm font-bold text-emerald-700 print:text-black mb-4 print:mb-2 border-b border-emerald-100 print:border-black pb-2">3. Foncier, Permis & PPI</h3>
+              <div className="grid grid-cols-1 gap-3 print:gap-1">
+                <DetailItem label="Nécessite Foncier" value={getLabel('necessiteFoncier', submission.necessiteFoncier)} />
+                {submission.necessiteFoncier === 'oui' && (
+                  <>
+                    <DetailItem label="Type Foncier" value={submission.typeFoncier} />
+                    <DetailItem label="Superficie" value={submission.superficieFoncier} />
+                    <DetailItem label="Localisation" value={submission.localisationFoncier} />
+                    <DetailItem label="Mode d'accès" value={getLabel('modeAccesFoncier', submission.modeAccesFoncier === 'autre' ? submission.modeAccesFoncierAutre : submission.modeAccesFoncier)} />
+                    <DetailItem label="État démarches foncières" value={getLabel('etatDemarchesFoncieres', submission.etatDemarchesFoncieres)} />
+                  </>
+                )}
+                
+                <DetailItem label="Nécessite Permis" value={getLabel('necessitePermis', submission.necessitePermis)} />
+                {submission.necessitePermis === 'oui' && (
+                  <>
+                    <DetailItem label="État Permis" value={getLabel('etatPermis', submission.etatPermis)} />
+                    {submission.dateDepotPermis && <DetailItem label="Date Dépôt Permis" value={submission.dateDepotPermis} />}
+                    {submission.dateObtentionPermis && <DetailItem label="Date Obtention Permis" value={submission.dateObtentionPermis} />}
+                  </>
+                )}
+
+                <DetailItem label="Nécessite PPI" value={getLabel('necessitePPI', submission.necessitePPI)} />
+                {submission.necessitePPI === 'oui' && (
+                  <>
+                    <DetailItem label="État PPI" value={getLabel('etatPPI', submission.etatPPI)} />
+                    {submission.dateDepotPPI && <DetailItem label="Date Dépôt PPI" value={submission.dateDepotPPI} />}
+                  </>
+                )}
+              </div>
+            </section>
+
+            {/* Section 4 */}
+            <section className="print:break-inside-avoid">
+              <h3 className="text-lg print:text-sm font-bold text-emerald-700 print:text-black mb-4 print:mb-2 border-b border-emerald-100 print:border-black pb-2">4. Réalisation & Avancement</h3>
+              <div className="grid grid-cols-1 gap-3 print:gap-1">
+                <DetailItem label="État du projet" value={getLabel('etatProjet', submission.etatProjet)} />
+                <DetailItem label="Montant Investissement" value={submission.montantInvestissement} />
+                <DetailItem label="Taux avancement physique" value={submission.tauxAvancementPhysique ? `${submission.tauxAvancementPhysique}%` : undefined} />
+                
+                {(submission.emploisCreesExecution || submission.emploisCreesMaitrise || submission.emploisCreesCadre) && (
+                  <div className="bg-slate-50 print:bg-white p-2 rounded-xl border border-slate-100 print:border-gray-300">
+                    <span className="text-[10px] font-bold text-slate-500 print:text-black uppercase tracking-wide block mb-1">Emplois Créés</span>
+                    <span className="text-sm print:text-[11px] text-slate-900 print:text-black font-medium">
+                      Exécution: {submission.emploisCreesExecution || 0} | Maitrise: {submission.emploisCreesMaitrise || 0} | Cadre: {submission.emploisCreesCadre || 0}
+                    </span>
+                  </div>
+                )}
+                
+                {submission.perspectivesRelance === 'oui' && <DetailItem label="Date prévisionnelle relance" value={submission.dateRelance} />}
+                {submission.miseEnExploitation && <DetailItem label="Mise en exploitation" value={getLabel('miseEnExploitation', submission.miseEnExploitation)} />}
+                {submission.datePleineExploitation && <DetailItem label="Date prévue pleine exploitation" value={submission.datePleineExploitation} />}
+                
+                <DetailItem label="Difficulté principale" value={getLabel('difficultes', submission.difficultePrincipale)} />
+                
+                <div className="">
+                  <span className="text-[10px] font-bold text-slate-500 print:text-black uppercase tracking-wide">Toutes les difficultés</span>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {submission.difficultes?.length > 0 ? submission.difficultes.map((d, i) => (
+                      <span key={i} className="px-2 py-0.5 bg-red-50 print:bg-white text-red-700 print:text-black border border-red-200 print:border-gray-400 rounded text-[10px]">
+                        {getLabel('difficultes', d)}
+                      </span>
+                    )) : <span className="text-[10px] text-slate-400">Aucune</span>}
+                  </div>
+                </div>
+
+                {submission.demarchesRealisees && submission.demarchesRealisees.length > 0 && (
+                  <div className="mt-2">
+                    <span className="text-[10px] font-bold text-slate-500 print:text-black uppercase tracking-wide">Démarches Réalisées</span>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {submission.demarchesRealisees.map((d, i) => (
+                        <span key={i} className="px-2 py-0.5 bg-emerald-50 print:bg-white text-emerald-700 print:text-black border border-emerald-200 print:border-gray-400 rounded text-[10px]">
+                          {getLabel('demarchesRealisees', d)}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </section>
+          </div>
+
+          {/* Capital Distribution (only if present) */}
           {submission.capitalRepartition && submission.capitalRepartition.length > 0 && (
-            <div className="mt-6 border border-slate-200 rounded-lg overflow-hidden">
-              <h4 className="text-sm font-bold text-slate-700 bg-slate-50 p-3 border-b border-slate-200">5.1. Répartition du capital</h4>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-slate-50/50 text-slate-500 text-xs uppercase">
+            <section className="print:break-inside-avoid">
+              <h3 className="text-lg print:text-sm font-bold text-emerald-700 print:text-black mb-4 print:mb-2 border-b border-emerald-100 print:border-black pb-2">Répartition du Capital</h3>
+              <div className="overflow-x-auto border border-slate-200 print:border-gray-400 rounded-xl print:rounded-none">
+                <table className="w-full text-left text-sm print:text-[10px]">
+                  <thead className="bg-slate-50 print:bg-gray-100 text-slate-600 print:text-black">
                     <tr>
-                      <th className="px-4 py-2 border-b">Associé</th>
-                      <th className="px-4 py-2 border-b">Nationalité</th>
-                      <th className="px-4 py-2 border-b">Part (%)</th>
-                      <th className="px-4 py-2 border-b">Montant</th>
-                      <th className="px-4 py-2 border-b">Devise</th>
+                      <th className="px-3 py-1 border-b print:border-gray-400">Associé</th>
+                      <th className="px-3 py-1 border-b print:border-gray-400">Nationalité</th>
+                      <th className="px-3 py-1 border-b print:border-gray-400">Part (%)</th>
+                      <th className="px-3 py-1 border-b print:border-gray-400">Montant</th>
+                      <th className="px-3 py-1 border-b print:border-gray-400">Devise</th>
                     </tr>
                   </thead>
                   <tbody>
                     {submission.capitalRepartition.map((entry, idx) => (
-                      <tr key={idx} className="border-b last:border-0 border-slate-100">
-                        <td className="px-4 py-2 font-medium text-slate-700">{entry.associe}</td>
-                        <td className="px-4 py-2">{entry.nationalite}</td>
-                        <td className="px-4 py-2">{entry.part}</td>
-                        <td className="px-4 py-2">{entry.montant}</td>
-                        <td className="px-4 py-2">{entry.devise}</td>
+                      <tr key={idx} className="border-b last:border-0 border-slate-100 print:border-gray-300">
+                        <td className="px-3 py-1 font-medium">{entry.associe}</td>
+                        <td className="px-3 py-1">{entry.nationalite}</td>
+                        <td className="px-3 py-1">{entry.part}</td>
+                        <td className="px-3 py-1">{entry.montant}</td>
+                        <td className="px-3 py-1">{entry.devise}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-            </div>
+            </section>
           )}
-        </section>
 
-        {/* Section 3 */}
-        <section>
-          <h3 className="text-lg font-bold text-emerald-700 mb-4 border-b border-emerald-100 pb-2">3. Foncier, Permis & PPI</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <DetailItem label="Nécessite Foncier" value={submission.necessiteFoncier} />
-            <DetailItem label="Type Foncier" value={submission.typeFoncier} />
-            <DetailItem label="Superficie" value={submission.superficieFoncier} />
-            <DetailItem label="Localisation" value={submission.localisationFoncier} />
-            <DetailItem label="Mode d'accès" value={submission.modeAccesFoncier || submission.modeAccesFoncierAutre} />
-            <DetailItem label="État démarches foncières" value={submission.etatDemarchesFoncieres} />
-            
-            <DetailItem label="Nécessite Permis" value={submission.necessitePermis} />
-            <DetailItem label="État Permis" value={submission.etatPermis} />
-            {submission.dateDepotPermis && <DetailItem label="Date Dépôt Permis" value={submission.dateDepotPermis} />}
-            {submission.dateObtentionPermis && <DetailItem label="Date Obtention Permis" value={submission.dateObtentionPermis} />}
-
-            <DetailItem label="Nécessite PPI" value={submission.necessitePPI} />
-            <DetailItem label="État PPI" value={submission.etatPPI} />
-            {submission.dateDepotPPI && <DetailItem label="Date Dépôt PPI" value={submission.dateDepotPPI} />}
-          </div>
-        </section>
-
-        {/* Section 4 */}
-        <section>
-          <h3 className="text-lg font-bold text-emerald-700 mb-4 border-b border-emerald-100 pb-2">4. Réalisation & Difficultés</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <DetailItem label="État du projet" value={submission.etatProjet?.replace(/_/g, ' ')} />
-            <DetailItem label="Montant Investissement" value={submission.montantInvestissement} />
-            <DetailItem label="Taux avancement physique" value={submission.tauxAvancementPhysique} />
-            {submission.tauxUtilisationCapacite && <DetailItem label="Taux Utilisation Capacité" value={submission.tauxUtilisationCapacite} />}
-            
-            {(submission.emploisCreesExecution || submission.emploisCreesMaitrise || submission.emploisCreesCadre) && (
-              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">Emplois Créés</span>
-                <span className="text-sm text-slate-900 font-medium">
-                  Exécution: {submission.emploisCreesExecution || 0} | Maitrise: {submission.emploisCreesMaitrise || 0} | Cadre: {submission.emploisCreesCadre || 0}
-                </span>
-              </div>
-            )}
-
-            {submission.perspectivesRelance === 'oui' && <DetailItem label="Date prévisionnelle relance" value={submission.dateRelance} />}
-            {submission.miseEnExploitation && <DetailItem label="Mise en exploitation" value={submission.miseEnExploitation?.replace(/_/g, ' ')} />}
-            {submission.datePleineExploitation && <DetailItem label="Date prévue pleine exploitation" value={submission.datePleineExploitation} />}
-
-            <DetailItem label="Difficulté principale" value={submission.difficultePrincipale} />
-            
-            <div className="col-span-1 md:col-span-2">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Toutes les difficultés</span>
-              <div className="mt-1 flex flex-wrap gap-2">
-                {submission.difficultes.length > 0 ? submission.difficultes.map((d, i) => (
-                  <span key={i} className="px-3 py-1 bg-red-50 text-red-700 border border-red-200 rounded-lg text-sm">{d}</span>
-                )) : <span className="text-sm text-slate-400">Aucune</span>}
-              </div>
-            </div>
-
-            {submission.demarchesRealisees && submission.demarchesRealisees.length > 0 && (
-              <div className="col-span-1 md:col-span-2 mt-2">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">Démarches Réalisées</span>
-                <div className="mt-1 flex flex-wrap gap-2">
-                  {submission.demarchesRealisees.map((d, i) => (
-                    <span key={i} className="px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-sm">{d}</span>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* Section 5 & 8 */}
-        <section className="space-y-8">
-          <div>
-            <h3 className="text-lg font-bold text-emerald-700 mb-4 border-b border-emerald-100 pb-2">8. Suivi du traitement des projets</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <DetailItem label="Action engagée" value={submission.actionEngagee === 'autre' ? submission.actionEngageeAutre : submission.actionEngagee?.replace(/_/g, ' ')} />
-              <DetailItem label="Partie intervenante" value={['locale', 'centrale', 'public', 'autre'].includes(submission.partieIntervenante) ? submission.partieIntervenanteAutre : submission.partieIntervenante?.replace(/_/g, ' ')} />
-              <DetailItem label="État du traitement" value={submission.etatTraitement?.replace(/_/g, ' ')} />
-              <DetailItem label="Échéance de traitement" value={submission.echeanceTraitement} />
-              <DetailItem label="Résultat du traitement" value={submission.resultatTraitement === 'autre' ? submission.resultatTraitementAutre : submission.resultatTraitement?.replace(/_/g, ' ')} />
-              <DetailItem label="Date de mise à jour" value={submission.dateMiseAJour} />
-              <DetailItem label="Possibilité réactivation" value={submission.possibiliteReactivation?.replace(/_/g, ' ')} />
-              <div className="col-span-1 md:col-span-2">
+          {/* Section 8 & Signature side-by-side for print */}
+          <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-8 print:gap-4">
+            <section className="print:break-inside-avoid">
+              <h3 className="text-lg print:text-sm font-bold text-emerald-700 print:text-black mb-4 print:mb-2 border-b border-emerald-100 print:border-black pb-2">8. Suivi du traitement</h3>
+              <div className="grid grid-cols-1 gap-3 print:gap-1">
+                <DetailItem label="Action engagée" value={getLabel('actionEngagee', submission.actionEngagee === 'autre' ? submission.actionEngageeAutre : submission.actionEngagee)} />
+                <DetailItem label="Partie intervenante" value={getLabel('partieIntervenante', ['locale', 'centrale', 'public', 'autre'].includes(submission.partieIntervenante) ? submission.partieIntervenanteAutre : submission.partieIntervenante)} />
+                <DetailItem label="État du traitement" value={getLabel('etatTraitement', submission.etatTraitement)} />
+                <DetailItem label="Échéance de traitement" value={submission.echeanceTraitement} />
+                <DetailItem label="Résultat du traitement" value={getLabel('resultatTraitement', submission.resultatTraitement === 'autre' ? submission.resultatTraitementAutre : submission.resultatTraitement)} />
+                <DetailItem label="Date de mise à jour" value={submission.dateMiseAJour} />
+                <DetailItem label="Possibilité réactivation" value={getLabel('possibiliteReactivation', submission.possibiliteReactivation)} />
                 <DetailItem label="Observations" value={submission.observations} />
               </div>
-            </div>
+            </section>
+
+            <section className="print:break-inside-avoid flex flex-col">
+              <h3 className="text-lg print:text-sm font-bold text-emerald-700 print:text-black mb-4 print:mb-2 border-b border-emerald-100 print:border-black pb-2">Signature</h3>
+              <div className="flex-1 bg-slate-50 print:bg-white p-4 rounded-xl border border-slate-200 print:border-gray-400 flex flex-col items-center justify-center">
+                {submission.signatureDataUrl ? (
+                  <img src={submission.signatureDataUrl} alt="Signature du promoteur" className="max-h-24 print:max-h-20 object-contain mix-blend-multiply" />
+                ) : (
+                  <p className="text-slate-400 print:text-black text-[10px] italic">Aucune signature</p>
+                )}
+                <p className="mt-2 text-[10px] text-slate-500 print:text-black uppercase font-bold tracking-widest">Le Promoteur</p>
+              </div>
+            </section>
           </div>
 
-          <div>
-            <h3 className="text-lg font-bold text-emerald-700 mb-4 border-b border-emerald-100 pb-2">Signature</h3>
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col items-center justify-center min-h-[150px]">
-              {submission.signatureDataUrl ? (
-                <img src={submission.signatureDataUrl} alt="Signature du promoteur" className="max-h-32 object-contain mix-blend-multiply" />
-              ) : (
-                <p className="text-slate-400 text-sm italic">Aucune signature fournie</p>
-              )}
-              <p className="mt-2 text-xs text-slate-500 uppercase font-bold tracking-widest">Signature du Promoteur</p>
-            </div>
-          </div>
-        </section>
-
+        </div>
       </div>
     </div>
   );
@@ -203,9 +222,9 @@ export default function SubmissionDetails({ submission, onClose }: Props) {
 function DetailItem({ label, value }: { label: string, value: any }) {
   if (!value) return null;
   return (
-    <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-      <span className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-1">{label}</span>
-      <span className="text-sm text-slate-900 font-medium">{value}</span>
+    <div className="bg-slate-50 print:bg-white p-2 print:p-1 rounded-xl print:rounded-none border border-slate-100 print:border-b print:border-t-0 print:border-x-0 print:border-gray-300">
+      <span className="text-[10px] font-bold text-slate-500 print:text-gray-700 uppercase tracking-wide block mb-0.5">{label}</span>
+      <span className="text-sm print:text-[11px] text-slate-900 print:text-black font-medium leading-tight">{value}</span>
     </div>
   );
 }
