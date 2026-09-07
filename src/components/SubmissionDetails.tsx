@@ -137,6 +137,7 @@ export default function SubmissionDetails({
                   </div>
                 </div>
 
+
                 {submission.demarchesRealisees && submission.demarchesRealisees.length > 0 && (
                   <div className="mt-2">
                     <span className="text-[10px] font-bold text-slate-500 print:text-black uppercase tracking-wide">Démarches Réalisées</span>
@@ -180,6 +181,21 @@ export default function SubmissionDetails({
                     ))}
                   </tbody>
                 </table>
+              </div>
+            </section>
+          )}
+
+
+          {/* Section 7: Soutien */}
+          {submission.typesSoutien && submission.typesSoutien.length > 0 && (
+            <section className="print:break-inside-avoid mt-8 print:mt-4">
+              <h3 className="text-lg print:text-sm font-bold text-emerald-700 print:text-black mb-4 print:mb-2 border-b border-emerald-100 print:border-black pb-2">7. Types de soutien supplémentaire</h3>
+              <div className="flex flex-wrap gap-2 print:gap-1">
+                {submission.typesSoutien.map((d: string, i: number) => (
+                  <span key={i} className="px-3 py-1 bg-blue-50 print:bg-white text-blue-700 print:text-black border border-blue-200 print:border-gray-400 rounded text-sm print:text-[11px] font-medium">
+                    {d === 'autre' ? (submission.typesSoutienAutre || 'Autre') : getLabel('typesSoutien', d)}
+                  </span>
+                ))}
               </div>
             </section>
           )}

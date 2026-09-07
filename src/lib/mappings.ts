@@ -184,9 +184,24 @@ export const LABELS: Record<string, Record<string, string>> = {
     'non': 'Non',
     'nsp': 'Je ne sais pas'
   }
+,
+  typesSoutien: {
+    'tech': 'Assistance technique',
+    'fin': 'Soutien financier',
+    'juridique': 'Conseil juridique',
+    'admin': 'Accompagnement administratif',
+    'reseautage': 'Réseautage et partenariats',
+    'formation': 'Formation et développement des compétences',
+    'logistique': 'Assistance logistique',
+    'feedback': 'Évaluation et feedback',
+    'foncier': 'Appui pour l\'accès au foncier',
+    'ppi': 'Appui pour l\'obtention des autorisations d\'importation (PPI)',
+    'autre': 'Autre'
+  },
 };
 
 export const getLabel = (field: string, value: string | undefined): string => {
   if (!value) return '';
   return LABELS[field]?.[value] || value;
+
 };
