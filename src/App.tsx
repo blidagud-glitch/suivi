@@ -5,8 +5,17 @@ import Login from './components/Login';
 import Home from './components/Home';
 import { saveSubmission } from './lib/store';
 import { initialFormState, FormState } from './types';
+import { LanguageProvider } from './lib/LanguageContext';
 
 export default function App() {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
+  );
+}
+
+function AppContent() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   
   const [userRole, setUserRole] = useState<string | null>(() => {

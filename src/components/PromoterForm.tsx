@@ -1,3 +1,4 @@
+import { useLanguage } from '../lib/LanguageContext';
 import React, { useState, useEffect, useRef } from 'react';
 import { FormState, initialFormState } from '../types';
 import { getSubmission, saveSubmission } from '../lib/store';
@@ -11,6 +12,8 @@ import Step4Avancement from './form-steps/Step4Avancement';
 import Step5Signature from './form-steps/Step5Signature';
 
 export default function PromoterForm({ sessionId, onComplete }: { sessionId: string, onComplete?: () => void }) {
+  const { t } = useLanguage();
+
   const [currentStep, setCurrentStep] = useState(1);
   const [maxStepReached, setMaxStepReached] = useState(1);
   const [formData, setFormData] = useState<FormState>({ ...initialFormState, sessionId });
@@ -92,7 +95,7 @@ export default function PromoterForm({ sessionId, onComplete }: { sessionId: str
       <header className="h-16 flex items-center justify-between px-8 bg-white/40 backdrop-blur-sm border-b border-white/20 shrink-0">
         <div className="flex items-center gap-4">
           <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-lg border border-emerald-200 uppercase tracking-wider">Session #{sessionId.slice(0, 4)}</span>
-          <h2 className="text-lg font-semibold text-slate-700 hidden sm:block">AAPI - Suivi des Projets</h2>
+          <h2 className="text-lg font-semibold text-slate-700 hidden sm:block">{t('AAPI - Suivi des Projets')}</h2>
         </div>
       </header>
 
@@ -118,7 +121,7 @@ export default function PromoterForm({ sessionId, onComplete }: { sessionId: str
                   );
                 })}
               </div>
-              <span className="text-sm font-bold text-slate-500 uppercase tracking-wide ml-4">Étape {currentStep} / {totalSteps}</span>
+              <span className="text-sm font-bold text-slate-500 uppercase tracking-wide ml-4">{t('Étape')} {currentStep} / {totalSteps}</span>
             </div>
 
             <form ref={formRef} onSubmit={(e) => {

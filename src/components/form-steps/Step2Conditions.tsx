@@ -1,30 +1,34 @@
+import { useLanguage } from '../../lib/LanguageContext';
 import React from 'react';
 import { FormState } from '../../types';
 import { Input, Label } from '../ui/Input';
 
-export default function Step2Conditions({ 
-  data, update 
+export default function Step2Conditions({
+  
+ data, update 
 }: { 
-  data: FormState, update: (u: Partial<FormState>) => void 
+ data: FormState, update: (u: Partial<FormState>) => void 
 }) {
+  const { t } = useLanguage();
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div>
-        <h2 className="text-xl font-bold text-gray-800 mb-2">Partie II — État d'avancement et diagnostic</h2>
-        <p className="text-gray-500 text-sm">Suivi de la présentation au GUD et conditions de réalisation (Capital, Financement).</p>
+        <h2 className="text-xl font-bold text-gray-800 mb-2">{t('Partie II — État d\'avancement et diagnostic')}</h2>
+        <p className="text-gray-500 text-sm">{t('Suivi de la présentation au GUD et conditions de réalisation (Capital, Financement).')}</p>
       </div>
 
       <div className="space-y-6">
-        <h3 className="font-semibold text-gray-900 border-b pb-2">4. Suivi de la présentation au GUD</h3>
+        <h3 className="font-semibold text-gray-900 border-b pb-2">{t('4. Suivi de la présentation au GUD')}</h3>
         
         <div className="space-y-4">
-          <Label>4.1 Présentation au GUD (Le promoteur s'est-il présenté ?)</Label>
+          <Label>{t('4.1 Présentation au GUD (Le promoteur s\'est-il présenté ?)')}</Label>
           <div className="grid sm:grid-cols-2 gap-2">
             {[
-              { id: 'renseigne', label: 'Oui, formulaire renseigné' },
-              { id: 'non_renseigne', label: 'Oui, présentation au GUD mais formulaire non renseigné' },
-              { id: 'pas_presente', label: 'Non, ne s\'est pas encore présenté' },
-              { id: 'refuse', label: 'Non, refuse de se présenter' }
+              { id: 'renseigne', label: t('Oui, formulaire renseigné') },
+              { id: 'non_renseigne', label: t('Oui, présentation au GUD mais formulaire non renseigné') },
+              { id: 'pas_presente', label: t("Non, ne s'est pas encore présenté") },
+              { id: 'refuse', label: t('Non, refuse de se présenter') }
             ].map(opt => (
               <label key={opt.id} className="flex items-center gap-2 cursor-pointer p-3 border rounded-md hover:bg-gray-50">
                 <input 
@@ -40,29 +44,29 @@ export default function Step2Conditions({
 
         {data.presentationGUD === 'pas_presente' && (
           <div className="space-y-4 bg-gray-50 p-4 rounded-lg border">
-            <Label>4.2. Proposition d'un autre rendez-vous</Label>
+            <Label>{t('4.2. Proposition d\'un autre rendez-vous')}</Label>
             <div className="space-y-3">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="radio" name="rdv" checked={data.autreRendezVous === 'oui'} onChange={() => update({ autreRendezVous: 'oui' })} />
-                <span className="text-sm">Oui</span>
+                <span className="text-sm">{t('Oui')}</span>
               </label>
               {data.autreRendezVous === 'oui' && (
                 <div className="ml-6 flex items-center gap-2">
-                  <span className="text-sm">Date prévue :</span>
+                  <span className="text-sm">{t('Date prévue :')}</span>
                   <Input type="date" value={data.autreRendezVousDate} onChange={e => update({ autreRendezVousDate: e.target.value })} className="w-auto h-8" />
                 </div>
               )}
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="radio" name="rdv" checked={data.autreRendezVous === 'non'} onChange={() => update({ autreRendezVous: 'non' })} />
-                <span className="text-sm">Non</span>
+                <span className="text-sm">{t('Non')}</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="radio" name="rdv" checked={data.autreRendezVous === 'autre'} onChange={() => update({ autreRendezVous: 'autre' })} />
-                <span className="text-sm">Autre :</span>
+                <span className="text-sm">{t('Autre :')}</span>
               </label>
               {data.autreRendezVous === 'autre' && (
                 <div className="ml-6 flex items-center gap-2">
-                  <Input value={data.autreRendezVousAutre} onChange={e => update({ autreRendezVousAutre: e.target.value })} placeholder="Précisez..." className="mt-1" />
+                  <Input value={data.autreRendezVousAutre} onChange={e => update({ autreRendezVousAutre: e.target.value })} placeholder={t("Précisez...")} className="mt-1" />
                 </div>
               )}
             </div>
@@ -71,15 +75,15 @@ export default function Step2Conditions({
 
         {data.presentationGUD === 'non_renseigne' || data.presentationGUD === 'pas_presente' ? (
           <div className="space-y-4 bg-gray-50 p-4 rounded-lg border">
-            <Label>4.3 Motif de non-présentation ou de non-renseignement</Label>
+            <Label>{t('4.3 Motif de non-présentation ou de non-renseignement')}</Label>
             <div className="grid sm:grid-cols-2 gap-2">
               {[
-                { id: 'disponibilite', label: 'Manque de disponibilité' },
-                { id: 'report', label: 'Report demandé par le promoteur' },
-                { id: 'interet', label: 'Absence d\'intérêt' },
-                { id: 'refus', label: 'Refus de renseigner le formulaire' },
-                { id: 'deplacer', label: 'Difficulté à se déplacer au GUD' },
-                { id: 'autre', label: 'Autre' }
+                { id: 'disponibilite', label: t('Manque de disponibilité') },
+                { id: 'report', label: t('Report demandé par le promoteur') },
+              { id: 'interet', label: t("Absence d'intérêt") },
+                { id: 'refus', label: t('Refus de renseigner le formulaire') },
+                { id: 'deplacer', label: t('Difficulté à se déplacer au GUD') },
+              { id: 'autre', label: t('Autre') }
               ].map(opt => (
                 <label key={opt.id} className="flex items-center gap-2 cursor-pointer">
                   <input 
@@ -95,7 +99,7 @@ export default function Step2Conditions({
               <Input 
                 value={data.motifNonPresentationAutre}
                 onChange={e => update({ motifNonPresentationAutre: e.target.value })}
-                placeholder="Précisez..."
+                placeholder={t("Précisez...")}
                 className="mt-2"
               />
             )}
@@ -104,20 +108,20 @@ export default function Step2Conditions({
       </div>
 
       <div className="space-y-6">
-        <h3 className="font-semibold text-gray-900 border-b pb-2">5. Informations sur les conditions de réalisation du projet</h3>
+        <h3 className="font-semibold text-gray-900 border-b pb-2">{t('5. Informations sur les conditions de réalisation du projet')}</h3>
         
         <div className="space-y-4">
-          <Label>5.1. Répartition du capital :</Label>
+          <Label>{t('5.1. Répartition du capital :')}</Label>
           <div className="overflow-x-auto border rounded-lg">
             <table className="w-full text-sm text-left">
               <thead className="bg-slate-50 text-slate-700">
                 <tr>
-                  <th className="px-3 py-2 border-b">N°</th>
-                  <th className="px-3 py-2 border-b">Associé / Actionnaire</th>
-                  <th className="px-3 py-2 border-b">Nationalité</th>
-                  <th className="px-3 py-2 border-b">Part du capital (%)</th>
-                  <th className="px-3 py-2 border-b">Montant</th>
-                  <th className="px-3 py-2 border-b">Devise (USD/Euro)</th>
+                  <th className="px-3 py-2 border-b">{t('N°')}</th>
+                  <th className="px-3 py-2 border-b">{t('Associé / Actionnaire')}</th>
+                  <th className="px-3 py-2 border-b">{t('Nationalité')}</th>
+                  <th className="px-3 py-2 border-b">{t('Part du capital (%)')}</th>
+                  <th className="px-3 py-2 border-b">{t('Montant')}</th>
+                  <th className="px-3 py-2 border-b">{t('Devise (USD/Euro)')}</th>
                   <th className="px-3 py-2 border-b"></th>
                 </tr>
               </thead>
@@ -209,7 +213,7 @@ export default function Step2Conditions({
               </tbody>
               <tfoot className="bg-slate-50 text-slate-700 font-semibold border-t">
                 <tr>
-                  <td colSpan={3} className="px-3 py-2 text-right">Total:</td>
+                  <td colSpan={3} className="px-3 py-2 text-right">{t('Total:')}</td>
                   <td className="px-3 py-2">
                     <span className={data.capitalRepartition.reduce((a, c) => a + (c.part || 0), 0) === 100 ? "text-emerald-600" : "text-amber-600"}>
                       {data.capitalRepartition.reduce((a, c) => a + (c.part || 0), 0)}%
@@ -223,41 +227,41 @@ export default function Step2Conditions({
           <div className="flex justify-between items-center">
             <button type="button" onClick={() => {
               update({ capitalRepartition: [...data.capitalRepartition, { id: Date.now().toString(), associe: '', nationalite: '', part: 0, montant: 0, devise: '' }] });
-            }} className="text-sm text-blue-600 hover:underline">+ Ajouter un associé</button>
+            }} className="text-sm text-blue-600 hover:underline">{t('+ Ajouter un associé')}</button>
             {data.capitalRepartition.reduce((a, c) => a + (c.part || 0), 0) !== 100 && data.capitalRepartition.reduce((a, c) => a + (c.part || 0), 0) > 0 && (
-              <span className="text-xs text-amber-600 font-medium">La répartition totale devrait être de 100%</span>
+              <span className="text-xs text-amber-600 font-medium">{t('La répartition totale devrait être de 100%')}</span>
             )}
           </div>
         </div>
 
         <div className="space-y-4">
-          <Label>5.2. Financement :</Label>
-          <Label className="block mt-2">5.2.1. Le projet nécessite-t-il un crédit bancaire ?</Label>
+          <Label>{t('5.2. Financement :')}</Label>
+          <Label className="block mt-2">{t('5.2.1. Le projet nécessite-t-il un crédit bancaire ?')}</Label>
           <div className="flex gap-4">
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="radio" name="credit" required checked={data.necessiteCredit === 'oui'} onChange={() => update({ necessiteCredit: 'oui' })} />
-              <span>Oui (Aller à la question 5.2.2)</span>
+              <span>{t('Oui (Aller à la question 5.2.2)')}</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="radio" name="credit" required checked={data.necessiteCredit === 'non'} onChange={() => update({ necessiteCredit: 'non', etatCredit: '' })} />
-              <span>Non (Aller à la question 5.3)</span>
+              <span>{t('Non (Aller à la question 5.3)')}</span>
             </label>
           </div>
         </div>
 
         {data.necessiteCredit === 'oui' && (
           <div className="space-y-4 bg-gray-50 p-4 rounded-lg border">
-            <Label>5.2.2. Si oui, quel est l'état d'avancement de votre demande de crédit ?</Label>
+            <Label>{t('5.2.2. Si oui, quel est l\'état d\'avancement de votre demande de crédit ?')}</Label>
             <div className="grid sm:grid-cols-2 gap-2">
               {[
-                { id: 'aucune', label: 'Aucune démarche engagée' },
-                { id: 'preparation', label: 'Dossier en préparation' },
-                { id: 'depose', label: 'Dossier déposé' },
-                { id: 'etude', label: 'Dossier en cours d\'étude' },
-                { id: 'approuve', label: 'Crédit approuvé' },
-                { id: 'partiellement', label: 'Crédit partiellement approuvé' },
-                { id: 'refuse', label: 'Crédit refusé' },
-                { id: 'decaisse', label: 'Crédit décaissé' }
+                { id: 'aucune', label: t('Aucune démarche engagée') },
+                { id: 'preparation', label: t('Dossier en préparation') },
+                { id: 'depose', label: t('Dossier déposé') },
+                { id: 'etude', label: t("Dossier en cours d'étude") },
+                { id: 'approuve', label: t('Crédit approuvé') },
+                { id: 'partiellement', label: t('Crédit partiellement approuvé') },
+                { id: 'refuse', label: t('Crédit refusé') },
+                { id: 'decaisse', label: t('Crédit décaissé') }
               ].map(opt => (
                 <label key={opt.id} className="flex items-center gap-2 cursor-pointer">
                   <input 
