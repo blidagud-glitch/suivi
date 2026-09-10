@@ -16,6 +16,37 @@ export default function Dashboard({ onLogout, role }: { onLogout: () => void, ro
   const [viewSubmissionId, setViewSubmissionId] = useState<string | null>(null);
   const [editSubmissionId, setEditSubmissionId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'projects' | 'agents' | 'settings'>('projects');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+
+  const filteredSubmissions = submissions.filter(sub => {
+    let match = true;
+    const subDate = new Date(sub.createdAt);
+    subDate.setHours(0, 0, 0, 0);
+
+    if (startDate) {
+      const s = new Date(startDate);
+      s.setHours(0, 0, 0, 0);
+      if (subDate < s) match = false;
+    }
+    if (endDate) {
+      const e = new Date(endDate);
+      e.setHours(0, 0, 0, 0);
+      if (subDate > e) match = false;
+    }
+    
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch = 
+        (sub.attestationNumero && sub.attestationNumero.toLowerCase().includes(searchLower)) ||
+        (sub.sessionId && sub.sessionId.toLowerCase().includes(searchLower));
+      if (!matchesSearch) match = false;
+    }
+
+    return match;
+  });
+
 
   useEffect(() => {
     const unsubscribe = subscribeToSubmissions((data) => {
@@ -40,7 +71,7 @@ export default function Dashboard({ onLogout, role }: { onLogout: () => void, ro
 
 
   const exportToJson = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(submissions, null, 2));
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(filteredSubmissions, null, 2));
     const downloadAnchorNode = document.createElement("a");
     downloadAnchorNode.setAttribute("href", dataStr);
     downloadAnchorNode.setAttribute("download", `aapi_backup_${new Date().toISOString().split("T")[0]}.json`);
@@ -76,7 +107,7 @@ export default function Dashboard({ onLogout, role }: { onLogout: () => void, ro
   };
 
   const exportToExcel = () => {
-    generateExcel(submissions);
+    generateExcel(filteredSubmissions);
   };
 
   return (
@@ -208,13 +239,39 @@ export default function Dashboard({ onLogout, role }: { onLogout: () => void, ro
           ) : (
             <>
           <div className="bg-white/60 backdrop-blur-md rounded-3xl border border-white/40 shadow-xl overflow-hidden flex flex-col">
-            <div className="p-6 border-b border-white/40 flex justify-between items-center">
-              <h2 className="font-semibold text-slate-700">Soumissions Récentes</h2>
+            <div className="p-6 border-b border-white/40 flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
+              <div className="flex items-center gap-6 bg-slate-50/50 p-2 rounded-xl border border-slate-200">
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-slate-600 font-medium">Du</label>
+                  <input 
+                    type="date" 
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="px-3 py-1.5 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-blue-700 font-medium"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm text-slate-600 font-medium">au :</label>
+                  <input 
+                    type="date" 
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="px-3 py-1.5 text-sm bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-blue-700 font-medium"
+                  />
+                </div>
+                <div className="flex items-center gap-2 border-l border-slate-300 pl-6">
+                  <span className="text-sm font-bold text-teal-700 underline">Résultat</span>
+                  <span className="text-lg font-bold text-red-600">{String(filteredSubmissions.length).padStart(2, '0')}</span>
+                </div>
+              </div>
+              
               <div className="relative">
                 <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" />
                 <input 
                   type="text" 
-                  placeholder="Rechercher..." 
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Rechercher (N° Attestation...)" 
                   className="pl-9 pr-4 py-2 text-sm bg-white/80 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 w-64"
                 />
               </div>
@@ -232,14 +289,14 @@ export default function Dashboard({ onLogout, role }: { onLogout: () => void, ro
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-700">
-                  {submissions.length === 0 ? (
+                  {filteredSubmissions.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
                         Aucune soumission pour le moment.
                       </td>
                     </tr>
                   ) : (
-                    submissions.map(sub => (
+                    filteredSubmissions.map(sub => (
                       <tr key={sub.sessionId} className="hover:bg-white/50 transition-colors">
                         <td className="px-6 py-4 font-mono text-xs">{sub.sessionId}</td>
                         <td className="px-6 py-4">{new Date(sub.createdAt).toLocaleDateString()}</td>

@@ -25,11 +25,38 @@ export const generateExcel = async (submissions: FormState[]) => {
   sheet.getCell('A3').value = 'Agence Algérienne de Promotion de l\'Investissement';
 
   // Title
-  sheet.mergeCells('A5:X5');
+  sheet.mergeCells('A5:AC5');
   const titleCell = sheet.getCell('A5');
   titleCell.value = 'Formulaire de suivi de l\'état d\'avancement des projets inscrits auprès de l\'AAPI';
   titleCell.font = { size: 14, bold: true };
   titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+
+  // Period
+  let periodText = '';
+  if (submissions && submissions.length > 0) {
+    const dates = submissions
+      .map(s => new Date(s.createdAt).getTime())
+      .filter(t => !isNaN(t));
+    if (dates.length > 0) {
+      const minDate = new Date(Math.min(...dates));
+      const maxDate = new Date(Math.max(...dates));
+      
+      const format = (d: Date) => {
+        const dd = String(d.getDate()).padStart(2, '0');
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const yyyy = d.getFullYear();
+        return `${dd}/${mm}/${yyyy}`;
+      };
+      
+      periodText = `Période : du ${format(minDate)} jusqu'à la date ${format(maxDate)}`;
+      sheet.mergeCells('A6:AC6');
+      const periodCell = sheet.getCell('A6');
+      periodCell.value = periodText;
+      periodCell.font = { size: 12, bold: true };
+      periodCell.alignment = { horizontal: 'center', vertical: 'middle' };
+    }
+  }
+
 
   // Columns definition (Total 29 columns from A to AC)
   // Let's define the hierarchical headers:
@@ -81,8 +108,8 @@ export const generateExcel = async (submissions: FormState[]) => {
   // Helper mapping columns to index (1-based)
   const getCol = (idx: number) => sheet.getColumn(idx + 1).letter;
 
-  // Render Row 6: Sections
-  const row6 = sheet.getRow(6);
+  // Render Row 7: Sections
+  const row7 = sheet.getRow(7);
   let startCol = 1;
   while (startCol <= headers.length) {
     const section = headers[startCol - 1].section;
@@ -90,18 +117,18 @@ export const generateExcel = async (submissions: FormState[]) => {
     while (endCol < headers.length && headers[endCol].section === section) {
       endCol++;
     }
-    const cell = row6.getCell(startCol);
+    const cell = row7.getCell(startCol);
     cell.value = section;
     cell.font = { ...headerFont, color: { argb: 'FFFFFFFF' } };
     cell.fill = bgGray;
     cell.alignment = { horizontal: 'center', vertical: 'middle' };
-    sheet.mergeCells(`${getCol(startCol - 1)}6:${getCol(endCol - 1)}6`);
+    sheet.mergeCells(`${getCol(startCol - 1)}7:${getCol(endCol - 1)}7`);
     startCol = endCol + 1;
   }
-  row6.height = 25;
+  row7.height = 25;
 
-  // Render Row 7: Groups
-  const row7 = sheet.getRow(7);
+  // Render Row 8: Groups
+  const row8 = sheet.getRow(8);
   startCol = 1;
   while (startCol <= headers.length) {
     const group = headers[startCol - 1].group;
@@ -109,38 +136,38 @@ export const generateExcel = async (submissions: FormState[]) => {
     while (endCol < headers.length && headers[endCol].group === group) {
       endCol++;
     }
-    const cell = row7.getCell(startCol);
+    const cell = row8.getCell(startCol);
     cell.value = group;
     cell.font = headerFont;
     cell.fill = bgLightGray;
     cell.alignment = { horizontal: 'center', vertical: 'middle' };
     if (endCol > startCol) {
-      sheet.mergeCells(`${getCol(startCol - 1)}7:${getCol(endCol - 1)}7`);
+      sheet.mergeCells(`${getCol(startCol - 1)}8:${getCol(endCol - 1)}8`);
     }
     startCol = endCol + 1;
   }
-  row7.height = 20;
+  row8.height = 20;
 
-  // Render Row 8: Columns
-  const row8 = sheet.getRow(8);
+  // Render Row 9: Columns
+  const row9 = sheet.getRow(9);
   headers.forEach((h, i) => {
-    const cell = row8.getCell(i + 1);
+    const cell = row9.getCell(i + 1);
     cell.value = h.col;
     cell.font = headerFont;
     cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
     cell.border = borderThin;
   });
-  row8.height = 30;
+  row9.height = 30;
 
-  // Apply borders to row 6 and 7 as well
-  for (let c = 1; c <= headers.length; c++) {
-    row6.getCell(c).border = borderThin;
+    for (let c = 1; c <= headers.length; c++) {
     row7.getCell(c).border = borderThin;
+    row8.getCell(c).border = borderThin;
+    row9.getCell(c).border = borderThin;
   }
 
   // Populate data
   submissions.forEach((sub, rowIdx) => {
-    const row = sheet.getRow(9 + rowIdx);
+    const row = sheet.getRow(10 + rowIdx);
     headers.forEach((h, colIdx) => {
       const cell = row.getCell(colIdx + 1);
       
