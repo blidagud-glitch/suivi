@@ -57,9 +57,12 @@ export default function Dashboard({ onLogout, role }: { onLogout: () => void, ro
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce formulaire ?')) {
-      await deleteSubmission(id);
-      const updated = await getSubmissions();
-      setSubmissions(updated);
+      try {
+        await deleteSubmission(id);
+      } catch (err) {
+        console.error(err);
+        alert("Erreur lors de la suppression.");
+      }
     }
   };
 

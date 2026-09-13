@@ -27,7 +27,7 @@ export default function PromoterForm({ sessionId, onComplete }: { sessionId: str
         setFormData(existing);
       } else {
         // Handle new session opened on phone
-        setFormData({ ...initialFormState, sessionId });
+        setFormData({ ...initialFormState, sessionId, createdAt: new Date().toISOString() });
       }
       setIsLoaded(true);
     });
@@ -36,7 +36,6 @@ export default function PromoterForm({ sessionId, onComplete }: { sessionId: str
   const updateForm = (updates: Partial<FormState>) => {
     const updated = { ...formData, ...updates };
     setFormData(updated);
-    saveSubmission(updated);
   };
 
   const nextStep = () => {
@@ -67,7 +66,9 @@ export default function PromoterForm({ sessionId, onComplete }: { sessionId: str
   };
 
   const handleSubmit = () => {
-    updateForm({ status: 'submitted' });
+    const finalData = { ...formData, status: 'submitted' as const };
+    setFormData(finalData);
+    saveSubmission(finalData);
     if (!onComplete) { alert("Formulaire validé et envoyé avec succès !"); }
     if (onComplete) {
       onComplete();

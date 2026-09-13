@@ -36,12 +36,7 @@ function AppContent() {
     } else if (newForm === 'true') {
       const initNewForm = async () => {
         const newId = Math.random().toString(36).substring(2, 10);
-        const form: FormState = {
-          ...initialFormState,
-          sessionId: newId,
-          createdAt: new Date().toISOString(),
-        };
-        await saveSubmission(form);
+        // Ne pas sauvegarder en base pour éviter les brouillons, PromoterForm initialisera l'état localement.
         window.location.href = `/?session_id=${newId}`;
       };
       initNewForm();
@@ -62,12 +57,7 @@ function AppContent() {
 
   const handleStartLocalForm = async () => {
     const newId = Math.random().toString(36).substring(2, 10);
-    const form: FormState = {
-      ...initialFormState,
-      sessionId: newId,
-      createdAt: new Date().toISOString(),
-    };
-    await saveSubmission(form);
+    // Ne pas sauvegarder en base pour éviter les brouillons
     setSessionId(newId);
     window.history.pushState({}, '', `/?session_id=${newId}`);
   };

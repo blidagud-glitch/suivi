@@ -56,8 +56,9 @@ export const deleteSubmission = async (sessionId: string): Promise<void> => {
   try {
     const docRef = doc(db, "submissions", sessionId);
     await deleteDoc(docRef);
-  } catch (e) {
+  } catch (e: any) {
     console.error("Failed to delete from Firestore", e);
+    alert("Erreur de suppression Firestore: " + e.message);
   }
   
   // Local fallback
