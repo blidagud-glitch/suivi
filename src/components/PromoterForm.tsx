@@ -65,15 +65,23 @@ export default function PromoterForm({ sessionId, onComplete }: { sessionId: str
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const finalData = { ...formData, status: 'submitted' as const };
     setFormData(finalData);
-    saveSubmission(finalData);
-    if (!onComplete) { alert("Formulaire validé et envoyé avec succès !"); }
-    if (onComplete) {
-      onComplete();
-    } else {
-      window.location.href = '/';
+    
+    // Attendre que la sauvegarde soit terminée avant de changer de page
+    try {
+      await saveSubmission(finalData);
+      
+      if (!onComplete) { alert("Formulaire validé et envoyé avec succès !"); }
+      if (onComplete) {
+        onComplete();
+      } else {
+        window.location.href = '/';
+      }
+    } catch (e) {
+      console.error(e);
+      alert("Erreur lors de l'enregistrement. Veuillez réessayer.");
     }
   };
 
