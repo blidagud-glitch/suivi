@@ -10,6 +10,8 @@ import Step2Conditions from './form-steps/Step2Conditions';
 import Step3Foncier from './form-steps/Step3Foncier';
 import Step4Avancement from './form-steps/Step4Avancement';
 import Step5Signature from './form-steps/Step5Signature';
+import SubmissionDetails from './SubmissionDetails';
+import { Download, Home, Calendar } from 'lucide-react';
 
 export default function PromoterForm({ sessionId, onComplete }: { sessionId: string, onComplete?: () => void }) {
   const { t } = useLanguage();
@@ -18,6 +20,7 @@ export default function PromoterForm({ sessionId, onComplete }: { sessionId: str
   const [maxStepReached, setMaxStepReached] = useState(1);
   const [formData, setFormData] = useState<FormState>({ ...initialFormState, sessionId });
   const [isLoaded, setIsLoaded] = useState(false);
+  const [showPrintView, setShowPrintView] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const totalSteps = 5;
 
@@ -69,16 +72,12 @@ export default function PromoterForm({ sessionId, onComplete }: { sessionId: str
     const finalData = { ...formData, status: 'submitted' as const };
     setFormData(finalData);
     
-    // Attendre que la sauvegarde soit terminée avant de changer de page
     try {
       await saveSubmission(finalData);
-      
-      if (!onComplete) { alert("Formulaire validé et envoyé avec succès !"); }
       if (onComplete) {
         onComplete();
-      } else {
-        window.location.href = '/';
       }
+      // If not onComplete (i.e. public view), we stay on this page to show the success screen.
     } catch (e) {
       console.error(e);
       alert("Erreur lors de l'enregistrement. Veuillez réessayer.");
@@ -88,14 +87,53 @@ export default function PromoterForm({ sessionId, onComplete }: { sessionId: str
   if (!isLoaded) return <div className="p-8 text-center">Chargement...</div>;
 
   if (formData.status === 'submitted' && !onComplete) {
+    const createdAtDate = formData.createdAt ? new Date(formData.createdAt) : new Date();
+    const nextSubmissionDate = new Date(createdAtDate);
+    nextSubmissionDate.setMonth(nextSubmissionDate.getMonth() + 6);
+    const formattedNextDate = nextSubmissionDate.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+
     return (
-      <div className="flex h-screen w-full items-center justify-center p-4">
-        <div className="bg-white/60 backdrop-blur-md p-8 rounded-3xl shadow-xl border border-white/40 max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner">✓</div>
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">Formulaire Soumis</h2>
-          <p className="text-slate-500 font-medium">Merci, vos réponses ont été enregistrées.</p>
+      <>
+        <div className="flex h-screen w-full items-center justify-center p-4">
+          <div className="bg-white/60 backdrop-blur-md p-8 rounded-3xl shadow-xl border border-white/40 max-w-md w-full text-center">
+            <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner">✓</div>
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">Formulaire Soumis</h2>
+            <p className="text-slate-500 font-medium mb-6">Merci, vos réponses ont été enregistrées avec succès.</p>
+            
+            <div className="bg-blue-50 border border-blue-100 rounded-2xl p-5 mb-8 text-left shadow-sm">
+              <div className="flex items-start gap-4">
+                <div className="bg-blue-100 p-2 rounded-xl text-blue-600 shrink-0">
+                  <Calendar className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-blue-900 text-sm mb-1">Prochain état d'avancement</h3>
+                  <p className="text-blue-700 text-sm leading-relaxed">
+                    Vous devrez soumettre votre prochain état d'avancement avant le <strong className="font-bold text-blue-900">{formattedNextDate}</strong> (dans 6 mois).
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <Button onClick={() => setShowPrintView(true)} variant="emerald" className="w-full flex items-center justify-center gap-2 py-6 text-md font-bold">
+                <Download className="w-5 h-5" />
+                Télécharger / Imprimer
+              </Button>
+              <Button onClick={() => window.location.href = '/'} variant="outline" className="w-full flex items-center justify-center gap-2 py-5 text-slate-600 hover:text-slate-900">
+                <Home className="w-4 h-4" />
+                Retour à l'accueil
+              </Button>
+            </div>
+          </div>
         </div>
-      </div>
+        
+        {showPrintView && (
+          <SubmissionDetails 
+            submission={formData} 
+            onClose={() => setShowPrintView(false)} 
+          />
+        )}
+      </>
     );
   }
 
