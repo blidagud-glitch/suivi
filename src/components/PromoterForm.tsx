@@ -94,7 +94,7 @@ export default function PromoterForm({ sessionId, onComplete }: { sessionId: str
 
     return (
       <>
-        <div className="flex h-screen w-full items-center justify-center p-4">
+        <div className="flex h-screen w-full items-center justify-center p-4 print:hidden">
           <div className="bg-white/60 backdrop-blur-md p-8 rounded-3xl shadow-xl border border-white/40 max-w-md w-full text-center">
             <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-inner">✓</div>
             <h2 className="text-2xl font-bold text-slate-800 mb-2">Formulaire Soumis</h2>
