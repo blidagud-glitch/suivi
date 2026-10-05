@@ -4,8 +4,8 @@ export interface CapitalEntry {
   id: string;
   associe: string;
   nationalite: string;
-  part: number;
-  montant: number;
+  part: number | string;
+  montant: number | string;
   devise: string;
 }
 

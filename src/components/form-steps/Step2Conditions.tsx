@@ -11,6 +11,13 @@ export default function Step2Conditions({
 }) {
   const { t } = useLanguage();
 
+  const totalCapitalPart = Math.round(
+    (data.capitalRepartition || []).reduce((acc, curr) => {
+      const p = typeof curr.part === 'number' ? curr.part : parseFloat(String(curr.part).replace(',', '.')) || 0;
+      return acc + (isNaN(p) ? 0 : p);
+    }, 0) * 100
+  ) / 100;
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div>
@@ -144,57 +151,89 @@ export default function Step2Conditions({
                       }} className="h-8 min-w-[100px]" />
                     </td>
                     <td className="px-3 py-2">
-                      <Input type="number" min="0" max="100" value={entry.part || ''} onChange={e => {
-                        let val = parseFloat(e.target.value);
-                        if (isNaN(val) || val < 0) val = 0;
-                        const otherParts = data.capitalRepartition.reduce((acc, curr, i) => acc + (i === idx ? 0 : (curr.part || 0)), 0);
-                        if (otherParts + val > 100) {
-                          val = 100 - otherParts;
-                        }
-                        const newRep = [...data.capitalRepartition];
-                        newRep[idx].part = val;
-                        
-                        if (val > 0) {
-                          const ref = newRep.find((e, i) => i !== idx && e.part > 0 && e.montant > 0);
-                          if (ref) {
-                            const cap = ref.montant / (ref.part / 100);
-                            newRep[idx].montant = parseFloat(((val / 100) * cap).toFixed(2));
+                      <Input 
+                        type="text" 
+                        inputMode="decimal" 
+                        placeholder="0.00" 
+                        value={entry.part ?? ''} 
+                        onChange={e => {
+                          const rawVal = e.target.value;
+                          if (!/^[0-9]*[.,]?[0-9]*$/.test(rawVal) && rawVal !== '') return;
+                          const newRep = [...data.capitalRepartition];
+                          newRep[idx].part = rawVal;
+                          
+                          const parsedVal = parseFloat(rawVal.replace(',', '.'));
+                          if (!isNaN(parsedVal) && parsedVal > 0) {
+                            const ref = newRep.find((item, i) => {
+                              if (i === idx) return false;
+                              const p = typeof item.part === 'number' ? item.part : parseFloat(String(item.part).replace(',', '.'));
+                              const m = typeof item.montant === 'number' ? item.montant : parseFloat(String(item.montant).replace(',', '.'));
+                              return !isNaN(p) && p > 0 && !isNaN(m) && m > 0;
+                            });
+                            if (ref) {
+                              const refPart = typeof ref.part === 'number' ? ref.part : parseFloat(String(ref.part).replace(',', '.'));
+                              const refMontant = typeof ref.montant === 'number' ? ref.montant : parseFloat(String(ref.montant).replace(',', '.'));
+                              const cap = refMontant / (refPart / 100);
+                              newRep[idx].montant = parseFloat(((parsedVal / 100) * cap).toFixed(2));
+                            }
                           }
-                        }
-                        
-                        update({ capitalRepartition: newRep });
-                      }} className="h-8 w-24" />
+                          
+                          update({ capitalRepartition: newRep });
+                        }} 
+                        className="h-8 w-24" 
+                      />
                     </td>
                     <td className="px-3 py-2">
-                      <Input type="number" value={entry.montant || ''} onChange={e => {
-                        let val = parseFloat(e.target.value);
-                        if (isNaN(val) || val < 0) val = 0;
-                        const newRep = [...data.capitalRepartition];
-                        newRep[idx].montant = val;
-                        
-                        if (newRep[idx].part > 0 && val > 0) {
-                          const newCap = val / (newRep[idx].part / 100);
-                          newRep.forEach((e, i) => {
-                            if (i !== idx && e.part > 0) {
-                              e.montant = parseFloat(((e.part / 100) * newCap).toFixed(2));
+                      <Input 
+                        type="text" 
+                        inputMode="decimal" 
+                        placeholder="0" 
+                        value={entry.montant ?? ''} 
+                        onChange={e => {
+                          const rawVal = e.target.value;
+                          if (!/^[0-9]*[.,]?[0-9]*$/.test(rawVal) && rawVal !== '') return;
+                          const newRep = [...data.capitalRepartition];
+                          newRep[idx].montant = rawVal;
+                          
+                          const parsedMontant = parseFloat(rawVal.replace(',', '.'));
+                          if (!isNaN(parsedMontant) && parsedMontant > 0) {
+                            const currentPartNum = typeof newRep[idx].part === 'number'
+                              ? newRep[idx].part
+                              : parseFloat(String(newRep[idx].part).replace(',', '.'));
+
+                            if (!isNaN(currentPartNum) && currentPartNum > 0) {
+                              const newCap = parsedMontant / (currentPartNum / 100);
+                              newRep.forEach((it, i) => {
+                                if (i !== idx) {
+                                  const p = typeof it.part === 'number'
+                                    ? it.part
+                                    : parseFloat(String(it.part).replace(',', '.'));
+                                  if (!isNaN(p) && p > 0) {
+                                    it.montant = parseFloat(((p / 100) * newCap).toFixed(2));
+                                  }
+                                }
+                              });
+                            } else if (isNaN(currentPartNum) || currentPartNum === 0) {
+                              const ref = newRep.find((it, i) => {
+                                if (i === idx) return false;
+                                const p = typeof it.part === 'number' ? it.part : parseFloat(String(it.part).replace(',', '.'));
+                                const m = typeof it.montant === 'number' ? it.montant : parseFloat(String(it.montant).replace(',', '.'));
+                                return !isNaN(p) && p > 0 && !isNaN(m) && m > 0;
+                              });
+                              if (ref) {
+                                const refPart = typeof ref.part === 'number' ? ref.part : parseFloat(String(ref.part).replace(',', '.'));
+                                const refMontant = typeof ref.montant === 'number' ? ref.montant : parseFloat(String(ref.montant).replace(',', '.'));
+                                const cap = refMontant / (refPart / 100);
+                                const computedPart = (parsedMontant / cap) * 100;
+                                newRep[idx].part = parseFloat(computedPart.toFixed(2));
+                              }
                             }
-                          });
-                        } else if (val > 0 && newRep[idx].part === 0) {
-                          const ref = newRep.find((e, i) => i !== idx && e.part > 0 && e.montant > 0);
-                          if (ref) {
-                            const cap = ref.montant / (ref.part / 100);
-                            let computedPart = (val / cap) * 100;
-                            const otherParts = newRep.reduce((acc, curr, i) => acc + (i === idx ? 0 : (curr.part || 0)), 0);
-                            if (otherParts + computedPart > 100) {
-                              computedPart = 100 - otherParts;
-                              newRep[idx].montant = parseFloat(((computedPart / 100) * cap).toFixed(2));
-                            }
-                            newRep[idx].part = parseFloat(computedPart.toFixed(2));
                           }
-                        }
-                        
-                        update({ capitalRepartition: newRep });
-                      }} className="h-8 w-24" />
+                          
+                          update({ capitalRepartition: newRep });
+                        }} 
+                        className="h-8 w-24" 
+                      />
                     </td>
                     <td className="px-3 py-2">
                       <Input value={entry.devise} onChange={e => {
@@ -215,8 +254,8 @@ export default function Step2Conditions({
                 <tr>
                   <td colSpan={3} className="px-3 py-2 text-right">{t('Total:')}</td>
                   <td className="px-3 py-2">
-                    <span className={data.capitalRepartition.reduce((a, c) => a + (c.part || 0), 0) === 100 ? "text-emerald-600" : "text-amber-600"}>
-                      {data.capitalRepartition.reduce((a, c) => a + (c.part || 0), 0)}%
+                    <span className={totalCapitalPart >= 99.5 ? "text-emerald-600 font-bold" : "text-amber-600 font-bold"}>
+                      {totalCapitalPart}%
                     </span>
                   </td>
                   <td colSpan={3}></td>
@@ -226,10 +265,15 @@ export default function Step2Conditions({
           </div>
           <div className="flex justify-between items-center">
             <button type="button" onClick={() => {
-              update({ capitalRepartition: [...data.capitalRepartition, { id: Date.now().toString(), associe: '', nationalite: '', part: 0, montant: 0, devise: '' }] });
+              update({ capitalRepartition: [...data.capitalRepartition, { id: Date.now().toString(), associe: '', nationalite: '', part: '', montant: '', devise: '' }] });
             }} className="text-sm text-blue-600 hover:underline">{t('+ Ajouter un associé')}</button>
-            {data.capitalRepartition.reduce((a, c) => a + (c.part || 0), 0) !== 100 && data.capitalRepartition.reduce((a, c) => a + (c.part || 0), 0) > 0 && (
+            {totalCapitalPart > 0 && totalCapitalPart < 99.5 && (
               <span className="text-xs text-amber-600 font-medium">{t('La répartition totale devrait être de 100%')}</span>
+            )}
+            {totalCapitalPart >= 99.5 && (
+              <span className="text-xs text-emerald-600 font-medium flex items-center gap-1">
+                ✓ {totalCapitalPart > 100 ? `${t('Répartition acceptée')} (${totalCapitalPart}%)` : t('Répartition valide (100%)')}
+              </span>
             )}
           </div>
         </div>

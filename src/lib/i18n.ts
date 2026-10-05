@@ -264,6 +264,8 @@ export const translations: Record<string, string> = {
   "Total:": "المجموع:",
   "+ Ajouter un associé": "+ إضافة شريك",
   "La répartition totale devrait être de 100%": "يجب أن يكون التوزيع الإجمالي 100%",
+  "Répartition acceptée": "تم قبول التوزيع",
+  "Répartition valide (100%)": "توزيع سليم (100%)",
   "5.2. Financement :": "5.2. التمويل:",
   "5.2.1. Le projet nécessite-t-il un crédit bancaire ?": "5.2.1. هل يتطلب المشروع قرضا بنكيا؟",
   "Oui (Aller à la question 5.2.2)": "نعم (اذهب إلى السؤال 5.2.2)",
