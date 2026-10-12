@@ -29,6 +29,17 @@ export default function Step1Contact({
             required
           />
         </div>
+        <div className="space-y-2">
+          <Label htmlFor="cnas">
+            {t("Numéro employeur CNAS")} <span className="text-slate-400 font-normal lowercase">({t("optionnel")})</span>
+          </Label>
+          <Input 
+            id="cnas" 
+            value={data.numeroEmployeurCNAS || ''} 
+            onChange={e => update({ numeroEmployeurCNAS: e.target.value })} 
+            placeholder="Ex: 1234567890"
+          />
+        </div>
       </div>
 
       <div className="grid md:grid-cols-2 gap-6">

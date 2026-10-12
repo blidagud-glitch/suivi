@@ -45,6 +45,9 @@ export default function SubmissionDetails({
               <h3 className="text-lg print:text-sm font-bold text-emerald-700 print:text-black mb-4 print:mb-2 border-b border-emerald-100 print:border-black pb-2">1. Informations Générales</h3>
               <div className="space-y-3 print:space-y-1">
                 <DetailItem label="N° Attestation" value={submission.attestationNumero} />
+                {submission.numeroEmployeurCNAS ? (
+                  <DetailItem label="N° Employeur CNAS" value={submission.numeroEmployeurCNAS} />
+                ) : null}
                 <DetailItem label="Email Responsable" value={submission.responsableEmail} />
                 <DetailItem label="Téléphone Responsable" value={submission.responsableTelephone} />
                 <DetailItem label="Contact Établi" value={getLabel('contactEtabli', submission.contactEtabli)} />

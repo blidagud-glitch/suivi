@@ -40,6 +40,7 @@ export default function Dashboard({ onLogout, role }: { onLogout: () => void, ro
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch = 
         (sub.attestationNumero && sub.attestationNumero.toLowerCase().includes(searchLower)) ||
+        (sub.numeroEmployeurCNAS && sub.numeroEmployeurCNAS.toLowerCase().includes(searchLower)) ||
         (sub.sessionId && sub.sessionId.toLowerCase().includes(searchLower));
       if (!matchesSearch) match = false;
     }

@@ -17,6 +17,7 @@ export interface FormState {
   
   // PARTIE I
   attestationNumero: string;
+  numeroEmployeurCNAS: string;
   responsableEmail: string;
   responsableTelephone: string;
   contactEtabli: ContactStatus | '';
@@ -103,6 +104,7 @@ export const initialFormState: FormState = {
   status: 'draft',
   
   attestationNumero: '',
+  numeroEmployeurCNAS: '',
   responsableEmail: '',
   responsableTelephone: '',
   contactEtabli: '',

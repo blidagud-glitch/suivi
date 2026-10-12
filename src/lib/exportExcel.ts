@@ -67,6 +67,7 @@ export const generateExcel = async (submissions: FormState[]) => {
   const headers = [
     // PART I
     { section: 'PARTIE I — PRISE DE CONTACT ET SUIVI DE LA MOBILISATION DU PROMOTEUR', group: '1. Attestation d\'enregistrement', col: 'Numéro d\'enregistrement', key: 'attestationNumero' },
+    { section: 'PARTIE I — PRISE DE CONTACT ET SUIVI DE LA MOBILISATION DU PROMOTEUR', group: '1. Attestation d\'enregistrement', col: 'Numéro employeur CNAS', key: 'numeroEmployeurCNAS' },
     { section: 'PARTIE I — PRISE DE CONTACT ET SUIVI DE LA MOBILISATION DU PROMOTEUR', group: '2. Coordonnées du responsable du projet', col: 'Adresse e-mail', key: 'responsableEmail' },
     { section: 'PARTIE I — PRISE DE CONTACT ET SUIVI DE LA MOBILISATION DU PROMOTEUR', group: '2. Coordonnées du responsable du projet', col: 'Numéro de téléphone', key: 'responsableTelephone' },
     { section: 'PARTIE I — PRISE DE CONTACT ET SUIVI DE LA MOBILISATION DU PROMOTEUR', group: '3. Contact du promoteur', col: '3.1. Prise du contact', key: 'contactEtabli' },
