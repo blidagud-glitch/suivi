@@ -41,6 +41,8 @@ export default function Dashboard({ onLogout, role }: { onLogout: () => void, ro
       const matchesSearch = 
         (sub.attestationNumero && sub.attestationNumero.toLowerCase().includes(searchLower)) ||
         (sub.numeroEmployeurCNAS && sub.numeroEmployeurCNAS.toLowerCase().includes(searchLower)) ||
+        (sub.localisationFoncier && sub.localisationFoncier.toLowerCase().includes(searchLower)) ||
+        (sub.coordonneesGPS && sub.coordonneesGPS.toLowerCase().includes(searchLower)) ||
         (sub.sessionId && sub.sessionId.toLowerCase().includes(searchLower));
       if (!matchesSearch) match = false;
     }

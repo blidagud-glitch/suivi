@@ -84,6 +84,8 @@ export const generateExcel = async (submissions: FormState[]) => {
     { section: 'PARTIE II — ÉTAT D\'AVANCEMENT ET DIAGNOSTIC DU PROJET', group: '5. CONDITIONS DE RÉALISATION', col: 'État du crédit', key: 'etatCredit' },
     { section: 'PARTIE II — ÉTAT D\'AVANCEMENT ET DIAGNOSTIC DU PROJET', group: '5. CONDITIONS DE RÉALISATION', col: 'Foncier nécessaire', key: 'necessiteFoncier' },
     { section: 'PARTIE II — ÉTAT D\'AVANCEMENT ET DIAGNOSTIC DU PROJET', group: '5. CONDITIONS DE RÉALISATION', col: 'Type du foncier', key: 'typeFoncier' },
+    { section: 'PARTIE II — ÉTAT D\'AVANCEMENT ET DIAGNOSTIC DU PROJET', group: '5. CONDITIONS DE RÉALISATION', col: 'Localisation', key: 'localisationFoncier' },
+    { section: 'PARTIE II — ÉTAT D\'AVANCEMENT ET DIAGNOSTIC DU PROJET', group: '5. CONDITIONS DE RÉALISATION', col: 'Coordonnées GPS', key: 'coordonneesGPS' },
     { section: 'PARTIE II — ÉTAT D\'AVANCEMENT ET DIAGNOSTIC DU PROJET', group: '5. CONDITIONS DE RÉALISATION', col: 'État des démarches (foncier)', key: 'etatDemarchesFoncieres' },
     { section: 'PARTIE II — ÉTAT D\'AVANCEMENT ET DIAGNOSTIC DU PROJET', group: '5. CONDITIONS DE RÉALISATION', col: 'Permis de construire', key: 'necessitePermis' },
     { section: 'PARTIE II — ÉTAT D\'AVANCEMENT ET DIAGNOSTIC DU PROJET', group: '5. CONDITIONS DE RÉALISATION', col: 'État permis', key: 'etatPermis' },
@@ -180,8 +182,21 @@ export const generateExcel = async (submissions: FormState[]) => {
          val = val.replace(/_/g, ' ');
       }
       
-      cell.value = val || '-';
-      cell.font = cellFont;
+      // Format GPS / Plus Code as clickable Google Maps hyperlink
+      if (h.key === 'coordonneesGPS' && val && val !== '-') {
+        const textVal = String(val).trim();
+        const mapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(textVal)}`;
+        cell.value = {
+          text: textVal,
+          hyperlink: mapUrl,
+          tooltip: 'Ouvrir la localisation dans Google Maps'
+        };
+        cell.font = { name: 'Arial', size: 10, color: { argb: 'FF0563C1' }, underline: true };
+      } else {
+        cell.value = val || '-';
+        cell.font = cellFont;
+      }
+
       cell.alignment = { vertical: 'middle', wrapText: true };
       cell.border = borderThin;
     });

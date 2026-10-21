@@ -43,6 +43,7 @@ export interface FormState {
   typeFoncier: string;
   superficieFoncier: string;
   localisationFoncier: string;
+  coordonneesGPS: string;
   modeAccesFoncier: string;
   modeAccesFoncierAutre: string;
   etatDemarchesFoncieres: string;
@@ -128,6 +129,7 @@ export const initialFormState: FormState = {
   typeFoncier: '',
   superficieFoncier: '',
   localisationFoncier: '',
+  coordonneesGPS: '',
   modeAccesFoncier: '',
   modeAccesFoncierAutre: '',
   etatDemarchesFoncieres: '',

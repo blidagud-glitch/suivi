@@ -1,7 +1,9 @@
 import { useLanguage } from '../../lib/LanguageContext';
-import React from 'react';
+import React, { useState } from 'react';
 import { FormState } from '../../types';
 import { Input, Label } from '../ui/Input';
+import { MapPin, ExternalLink, Loader2 } from 'lucide-react';
+import { encodePlusCode } from '../../lib/utils';
 
 export default function Step3Foncier({
   
@@ -10,6 +12,48 @@ export default function Step3Foncier({
  data: FormState, update: (u: Partial<FormState>) => void 
 }) {
   const { t } = useLanguage();
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  const handleGetCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError(t('Géolocalisation non supportée par votre navigateur'));
+      return;
+    }
+    setIsLocating(true);
+    setLocationError(null);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14&addressdetails=1`, {
+            headers: { 'Accept-Language': 'fr' }
+          });
+          if (res.ok) {
+            const geoData = await res.json();
+            const commune = geoData.address?.city || geoData.address?.town || geoData.address?.village || geoData.address?.municipality || geoData.address?.county || '';
+            const fullCode = encodePlusCode(lat, lng);
+            const shortCode = fullCode.length >= 11 ? fullCode.slice(4) : fullCode;
+            const formatted = commune ? `${shortCode}, ${commune}` : `${shortCode} (${lat.toFixed(6)}, ${lng.toFixed(6)})`;
+            update({ coordonneesGPS: formatted });
+            setIsLocating(false);
+            return;
+          }
+        } catch {
+          // Fallback to coordinates
+        }
+        update({ coordonneesGPS: `${lat.toFixed(6)}, ${lng.toFixed(6)}` });
+        setIsLocating(false);
+      },
+      (error) => {
+        console.warn('Geolocation error:', error);
+        setLocationError(t("Position auto indisponible. Ouvrez Google Maps pour copier le code (ex: GVC6+4HG, Beni Merad)."));
+        setIsLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+    );
+  };
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -53,9 +97,74 @@ export default function Step3Foncier({
                 <Input type="number" value={data.superficieFoncier} onChange={e => update({ superficieFoncier: e.target.value })} />
               </div>
             </div>
-            <div className="space-y-2">
-              <Label>{t('Localisation (Commune / Wilaya)')}</Label>
-              <Input value={data.localisationFoncier} onChange={e => update({ localisationFoncier: e.target.value })} />
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>{t('Localisation (Commune / Wilaya)')}</Label>
+                <Input 
+                  value={data.localisationFoncier} 
+                  onChange={e => update({ localisationFoncier: e.target.value })} 
+                  placeholder={t('Ex: Blida, Boufarik...')}
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center flex-wrap gap-1">
+                  <Label htmlFor="gps-field">{t('Coordonnées GPS / Plus Code Google Maps')}</Label>
+                  <div className="flex items-center gap-2">
+                    <a
+                      href="https://www.google.com/maps"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 font-semibold transition-colors"
+                      title={t('Ouvrir Google Maps')}
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      <span>{t('Ouvrir Maps')}</span>
+                    </a>
+                    <button
+                      type="button"
+                      onClick={handleGetCurrentLocation}
+                      disabled={isLocating}
+                      className="text-xs text-emerald-600 hover:text-emerald-700 flex items-center gap-1 font-semibold transition-colors disabled:opacity-50 cursor-pointer"
+                      title={t('Détecter ma position GPS')}
+                    >
+                      {isLocating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MapPin className="w-3.5 h-3.5" />}
+                      <span>{isLocating ? '...' : t('Position actuelle')}</span>
+                    </button>
+                  </div>
+                </div>
+                <Input 
+                  id="gps-field"
+                  value={data.coordonneesGPS || ''} 
+                  onChange={e => {
+                    update({ coordonneesGPS: e.target.value });
+                    if (locationError) setLocationError(null);
+                  }} 
+                  placeholder="Ex: GVC6+4HG, Beni Merad" 
+                />
+                <p className="text-[11px] text-slate-500">
+                  {t('Copiez le code depuis Google Maps (ex: GVC6+4HG, Beni Merad) ou les coordonnées GPS')}
+                </p>
+                {locationError && (
+                  <p className="text-[11px] text-amber-600 font-medium">{locationError}</p>
+                )}
+                {data.coordonneesGPS && (
+                  <div className="flex items-center justify-between p-2 bg-emerald-50/70 border border-emerald-200 rounded-lg text-xs mt-1">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span className="font-medium text-slate-800 truncate">{data.coordonneesGPS}</span>
+                    </div>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.coordonneesGPS)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium ml-2 shrink-0 underline"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      <span>{t('Voir sur Google Maps')}</span>
+                    </a>
+                  </div>
+                )}
+              </div>
             </div>
             
             <div className="space-y-3">
@@ -111,6 +220,88 @@ export default function Step3Foncier({
                     <span className="text-sm">{opt.label}</span>
                   </label>
                 ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {data.necessiteFoncier === 'non' && (
+          <div className="space-y-4 bg-gray-50 p-4 rounded-lg border">
+            <p className="text-xs text-slate-500 font-medium">
+              {t("Si vous disposez déjà d'une assiette ou d'un local, vous pouvez préciser sa localisation :")}
+            </p>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="loc-non">
+                  {t('Localisation (Commune / Wilaya)')} <span className="text-slate-400 font-normal lowercase">({t('optionnel')})</span>
+                </Label>
+                <Input 
+                  id="loc-non"
+                  value={data.localisationFoncier} 
+                  onChange={e => update({ localisationFoncier: e.target.value })} 
+                  placeholder={t('Ex: Blida, Boufarik...')}
+                />
+              </div>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center flex-wrap gap-1">
+                  <Label htmlFor="gps-field-non">
+                    {t('Coordonnées GPS / Plus Code Google Maps')} <span className="text-slate-400 font-normal lowercase">({t('optionnel')})</span>
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <a
+                      href="https://www.google.com/maps"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 font-semibold transition-colors"
+                      title={t('Ouvrir Google Maps')}
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      <span>{t('Ouvrir Maps')}</span>
+                    </a>
+                    <button
+                      type="button"
+                      onClick={handleGetCurrentLocation}
+                      disabled={isLocating}
+                      className="text-xs text-emerald-600 hover:text-emerald-700 flex items-center gap-1 font-semibold transition-colors disabled:opacity-50 cursor-pointer"
+                      title={t('Détecter ma position GPS')}
+                    >
+                      {isLocating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MapPin className="w-3.5 h-3.5" />}
+                      <span>{isLocating ? '...' : t('Position actuelle')}</span>
+                    </button>
+                  </div>
+                </div>
+                <Input 
+                  id="gps-field-non"
+                  value={data.coordonneesGPS || ''} 
+                  onChange={e => {
+                    update({ coordonneesGPS: e.target.value });
+                    if (locationError) setLocationError(null);
+                  }} 
+                  placeholder="Ex: GVC6+4HG, Beni Merad" 
+                />
+                <p className="text-[11px] text-slate-500">
+                  {t('Copiez le code depuis Google Maps (ex: GVC6+4HG, Beni Merad) ou les coordonnées GPS')}
+                </p>
+                {locationError && (
+                  <p className="text-[11px] text-amber-600 font-medium">{locationError}</p>
+                )}
+                {data.coordonneesGPS && (
+                  <div className="flex items-center justify-between p-2 bg-emerald-50/70 border border-emerald-200 rounded-lg text-xs mt-1">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
+                      <span className="font-medium text-slate-800 truncate">{data.coordonneesGPS}</span>
+                    </div>
+                    <a
+                      href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(data.coordonneesGPS)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium ml-2 shrink-0 underline"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      <span>{t('Voir sur Google Maps')}</span>
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
           </div>

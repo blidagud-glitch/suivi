@@ -82,8 +82,47 @@ export default function SubmissionDetails({
                     <DetailItem label="Type Foncier" value={submission.typeFoncier} />
                     <DetailItem label="Superficie" value={submission.superficieFoncier} />
                     <DetailItem label="Localisation" value={submission.localisationFoncier} />
+                    {submission.coordonneesGPS && (
+                      <DetailItem 
+                        label="Coordonnées GPS / Localisation" 
+                        value={
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(submission.coordonneesGPS)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 underline font-medium"
+                            title="Ouvrir dans Google Maps"
+                          >
+                            <span className="text-emerald-600 print:text-black">📍</span>
+                            <span>{submission.coordonneesGPS}</span>
+                          </a>
+                        } 
+                      />
+                    )}
                     <DetailItem label="Mode d'accès" value={getLabel('modeAccesFoncier', submission.modeAccesFoncier === 'autre' ? submission.modeAccesFoncierAutre : submission.modeAccesFoncier)} />
                     <DetailItem label="État démarches foncières" value={getLabel('etatDemarchesFoncieres', submission.etatDemarchesFoncieres)} />
+                  </>
+                )}
+                {submission.necessiteFoncier === 'non' && (submission.localisationFoncier || submission.coordonneesGPS) && (
+                  <>
+                    {submission.localisationFoncier && <DetailItem label="Localisation" value={submission.localisationFoncier} />}
+                    {submission.coordonneesGPS && (
+                      <DetailItem 
+                        label="Coordonnées GPS / Localisation" 
+                        value={
+                          <a
+                            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(submission.coordonneesGPS)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 underline font-medium"
+                            title="Ouvrir dans Google Maps"
+                          >
+                            <span className="text-emerald-600 print:text-black">📍</span>
+                            <span>{submission.coordonneesGPS}</span>
+                          </a>
+                        } 
+                      />
+                    )}
                   </>
                 )}
                 
